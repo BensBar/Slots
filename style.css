@@ -1,0 +1,15 @@
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    background: #000;
+}
+#game-canvas {
+    border: 1px solid #fff;
+}
+#spin-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+}
