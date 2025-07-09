@@ -9,14 +9,18 @@ class SlotMachine4K {
         this.ctx = this.display.getContext();
         this.assetManager = new AssetManager();
         this.effects = new EffectsSystem(this.ctx, this.canvas);
+        this.audio = new AudioSystem();
         
         // Game state
         this.symbols = ['bell', 'cherry', 'clover', 'diamond', 'jackpot', 'lemon', 'seven', 'star', 'wild'];
         this.reels = [[], [], []];
-        this.score = 0;
+        this.score = 1000; // Start with some credits
         this.isSpinning = false;
-        this.paylines = 3; // Start with 3 paylines
+        this.paylines = 5; // Start with 5 paylines
         this.bet = 10;
+        this.maxPaylines = 25;
+        this.bonusRounds = 0;
+        this.multiplier = 1;
         
         // Visual settings
         this.reelWidth = 100;
@@ -114,7 +118,10 @@ class SlotMachine4K {
     }
     
     setupControls() {
-        this.spinButton.addEventListener('click', () => this.spin());
+        this.spinButton.addEventListener('click', () => {
+            this.audio.play('button_click');
+            this.spin();
+        });
         
         // Touch controls for mobile
         let touchStartY = 0;
@@ -130,6 +137,7 @@ class SlotMachine4K {
             
             // Swipe up to spin
             if (swipeDistance > 50 && !this.isSpinning) {
+                this.audio.play('button_click');
                 this.spin();
                 
                 // Haptic feedback (if supported)
@@ -138,14 +146,58 @@ class SlotMachine4K {
                 }
             }
         });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    if (!this.isSpinning) {
+                        this.audio.play('button_click');
+                        this.spin();
+                    }
+                    break;
+                case 'KeyM':
+                    // Toggle mute
+                    this.audio.toggle();
+                    break;
+                case 'ArrowUp':
+                    // Increase paylines
+                    if (this.paylines < this.maxPaylines) {
+                        this.paylines = Math.min(this.paylines + 2, this.maxPaylines);
+                    }
+                    break;
+                case 'ArrowDown':
+                    // Decrease paylines
+                    if (this.paylines > 1) {
+                        this.paylines = Math.max(this.paylines - 2, 1);
+                    }
+                    break;
+            }
+        });
     }
     
     spin() {
         if (this.isSpinning) return;
         
+        // Check if it's a bonus round or regular spin
+        if (this.bonusRounds > 0) {
+            this.bonusRounds--;
+            if (this.bonusRounds === 0) {
+                this.multiplier = 1; // Reset multiplier when bonus ends
+            }
+        } else if (this.score < this.bet) {
+            return; // Not enough credits
+        } else {
+            this.score -= this.bet; // Deduct bet for regular spins
+        }
+        
         this.isSpinning = true;
         this.spinButton.disabled = true;
         this.effects.clear();
+        
+        // Play spin sound
+        this.audio.play('spin');
         
         // Generate new reel results
         const newReels = [];
@@ -193,6 +245,8 @@ class SlotMachine4K {
                     if (progress >= 1) {
                         this.spinOffset[reelIndex] = 0;
                         this.spinSpeed[reelIndex] = 0;
+                        // Play reel stop sound
+                        this.audio.play('reel_stop');
                         resolve();
                         return;
                     }
@@ -235,6 +289,10 @@ class SlotMachine4K {
             if (diag1Win > 0) {
                 winnings += diag1Win;
                 winningLines.push({ line: 'diag1', symbols: diag1, amount: diag1Win });
+                // Add diagonal glow effects
+                this.effects.addGlowEffect(this.startX, this.startY, this.reelWidth, this.reelHeight, '#ffd700', 1);
+                this.effects.addGlowEffect(this.startX + this.reelSpacing, this.startY + this.reelHeight, this.reelWidth, this.reelHeight, '#ffd700', 1);
+                this.effects.addGlowEffect(this.startX + 2 * this.reelSpacing, this.startY + 2 * this.reelHeight, this.reelWidth, this.reelHeight, '#ffd700', 1);
             }
             
             // Diagonal top-right to bottom-left
@@ -243,12 +301,41 @@ class SlotMachine4K {
             if (diag2Win > 0) {
                 winnings += diag2Win;
                 winningLines.push({ line: 'diag2', symbols: diag2, amount: diag2Win });
+                // Add diagonal glow effects
+                this.effects.addGlowEffect(this.startX, this.startY + 2 * this.reelHeight, this.reelWidth, this.reelHeight, '#ffd700', 1);
+                this.effects.addGlowEffect(this.startX + this.reelSpacing, this.startY + this.reelHeight, this.reelWidth, this.reelHeight, '#ffd700', 1);
+                this.effects.addGlowEffect(this.startX + 2 * this.reelSpacing, this.startY, this.reelWidth, this.reelHeight, '#ffd700', 1);
             }
         }
+        
+        // Check V-shape and inverted V-shape (if 9+ paylines)
+        if (this.paylines >= 9) {
+            // V-shape (top corners to middle bottom)
+            const vShape = [this.reels[0][0], this.reels[1][2], this.reels[2][0]];
+            const vWin = this.checkLineWin(vShape);
+            if (vWin > 0) {
+                winnings += vWin;
+                winningLines.push({ line: 'v', symbols: vShape, amount: vWin });
+            }
+            
+            // Inverted V-shape (bottom corners to middle top)
+            const invV = [this.reels[0][2], this.reels[1][0], this.reels[2][2]];
+            const invVWin = this.checkLineWin(invV);
+            if (invVWin > 0) {
+                winnings += invVWin;
+                winningLines.push({ line: 'invV', symbols: invV, amount: invVWin });
+            }
+        }
+        
+        // Apply multiplier
+        winnings *= this.multiplier;
         
         if (winnings > 0) {
             this.score += winnings;
             this.celebrateWin(winnings, winningLines);
+            
+            // Check for bonus round triggers
+            this.checkBonusRound(winningLines);
         }
     }
     
@@ -282,6 +369,17 @@ class SlotMachine4K {
     celebrateWin(amount, winningLines) {
         console.log(`Win! Amount: ${amount}`);
         
+        // Play appropriate sound
+        const isJackpot = winningLines.some(line => 
+            line.symbols.every(symbol => symbol === 'jackpot')
+        );
+        
+        if (isJackpot) {
+            this.audio.play('jackpot');
+        } else {
+            this.audio.play('win');
+        }
+        
         // Create particle effects
         winningLines.forEach(line => {
             if (typeof line.line === 'number') {
@@ -312,6 +410,27 @@ class SlotMachine4K {
             } else {
                 navigator.vibrate(100);
             }
+        }
+    }
+    
+    checkBonusRound(winningLines) {
+        // Trigger bonus round if three or more scatter symbols (star)
+        const scatterCount = this.reels.flat().filter(symbol => symbol === 'star').length;
+        
+        if (scatterCount >= 3) {
+            this.bonusRounds += 10; // Add 10 free spins
+            this.multiplier = 2; // Double multiplier during bonus
+            
+            // Create special celebration
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * this.canvas.width;
+                    const y = Math.random() * this.canvas.height;
+                    this.effects.createWinParticles(x, y, 'jackpot');
+                }, i * 100);
+            }
+            
+            console.log('BONUS ROUND! 10 Free Spins with 2x Multiplier!');
         }
     }
     
@@ -415,6 +534,42 @@ class SlotMachine4K {
             this.ctx.stroke();
         }
         
+        // Diagonal paylines (if 5+ paylines)
+        if (this.paylines >= 5) {
+            // Diagonal top-left to bottom-right
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.startX + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+            this.ctx.stroke();
+            
+            // Diagonal top-right to bottom-left
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.startX + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+            this.ctx.stroke();
+        }
+        
+        // V-shape paylines (if 9+ paylines)
+        if (this.paylines >= 9) {
+            this.ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+            
+            // V-shape
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.startX + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + this.reelSpacing + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+            this.ctx.stroke();
+            
+            // Inverted V-shape
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.startX + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+            this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+            this.ctx.stroke();
+        }
+        
         this.ctx.setLineDash([]);
     }
     
@@ -425,7 +580,7 @@ class SlotMachine4K {
         this.ctx.fillStyle = '#fff';
         this.ctx.font = 'bold 24px Arial';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText(`Score: ${this.score}`, 20, 50);
+        this.ctx.fillText(`Credits: ${this.score}`, 20, 50);
         
         // Bet display
         this.ctx.font = '18px Arial';
@@ -433,6 +588,20 @@ class SlotMachine4K {
         
         // Paylines display
         this.ctx.fillText(`Paylines: ${this.paylines}`, 20, 110);
+        
+        // Multiplier display (if active)
+        if (this.multiplier > 1) {
+            this.ctx.fillStyle = '#ffd700';
+            this.ctx.font = 'bold 20px Arial';
+            this.ctx.fillText(`${this.multiplier}x MULTIPLIER`, 20, 140);
+        }
+        
+        // Bonus rounds display (if active)
+        if (this.bonusRounds > 0) {
+            this.ctx.fillStyle = '#ff6b6b';
+            this.ctx.font = 'bold 18px Arial';
+            this.ctx.fillText(`FREE SPINS: ${this.bonusRounds}`, 20, 170);
+        }
         
         // Title
         this.ctx.font = 'bold 28px Arial';
@@ -443,5 +612,11 @@ class SlotMachine4K {
         titleGradient.addColorStop(1, '#ff6b6b');
         this.ctx.fillStyle = titleGradient;
         this.ctx.fillText('ULTIMATE 4K SLOT MACHINE', dims.width / 2, 40);
+        
+        // Controls hint
+        this.ctx.font = '12px Arial';
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        this.ctx.textAlign = 'right';
+        this.ctx.fillText('↑↓ Paylines | M Mute | Space Spin', dims.width - 20, dims.height - 20);
     }
 }
