@@ -18,11 +18,27 @@ class Display4K {
         const displayWidth = rect.width;
         const displayHeight = rect.height;
         
-        // Calculate scale factor for 4K support
-        this.scale = Math.min(
-            window.innerWidth / this.baseWidth,
-            window.innerHeight / this.baseHeight
-        );
+        // iPhone-specific adjustments
+        const isIPhone = /iPhone/i.test(navigator.userAgent);
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate scale factor for 4K support with iPhone considerations
+        if (isIPhone) {
+            // More conservative scaling for iPhone to ensure full visibility
+            this.scale = Math.min(
+                (viewportWidth * 0.9) / this.baseWidth,  // Leave 10% margin
+                (viewportHeight * 0.7) / this.baseHeight  // Leave 30% for controls
+            );
+        } else {
+            this.scale = Math.min(
+                window.innerWidth / this.baseWidth,
+                window.innerHeight / this.baseHeight
+            );
+        }
+        
+        // Ensure minimum scale for readability
+        this.scale = Math.max(this.scale, 0.6);
         
         // Set actual canvas size for 4K
         this.canvas.width = this.baseWidth * this.devicePixelRatio * this.scale;
@@ -39,7 +55,7 @@ class Display4K {
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
         
-        console.log(`Display initialized: ${this.canvas.width}x${this.canvas.height} (scale: ${this.scale})`);
+        console.log(`Display initialized: ${this.canvas.width}x${this.canvas.height} (scale: ${this.scale}, iPhone: ${isIPhone})`);
     }
     
     setupResponsiveResizing() {

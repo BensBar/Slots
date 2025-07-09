@@ -21,11 +21,21 @@ class Game {
         this.bonusRounds = 0;
         this.multiplier = 1;
         
-        // Visual settings
+        // Visual settings - iPhone-optimized
         this.reelWidth = 100;
         this.reelHeight = 100;
         this.reelSpacing = 130;  // Increased spacing between reels
-        this.startX = 75;  // Adjusted for better centering with wider spacing
+        
+        // Detect iPhone for positioning adjustments
+        const isIPhone = /iPhone/i.test(navigator.userAgent);
+        if (isIPhone) {
+            // Tighter spacing and positioning for iPhone
+            this.reelSpacing = 120;
+            this.startX = 60;  // Move further left to ensure third reel is visible
+        } else {
+            this.startX = 75;  // Standard positioning for desktop
+        }
+        
         this.startY = 200;
         
         // Animation state
@@ -241,10 +251,15 @@ class Game {
                     this.spinSpeed[reelIndex] = 20 * (1 - easedProgress);
                     this.spinOffset[reelIndex] += this.spinSpeed[reelIndex];
 
-                    // **IMPROVED FIX: Keep spinOffset within proper bounds**
-                    // Constrain offset to prevent symbols from going below reels
-                    const maxOffset = this.reelHeight * 2; // Allow maximum of 2 symbol heights offset
+                    // **MOBILE-OPTIMIZED FIX: Stricter bounds for iPhone**
+                    const isIPhone = /iPhone/i.test(navigator.userAgent);
+                    const maxOffset = isIPhone ? this.reelHeight : this.reelHeight * 2;
+                    
+                    // Keep offset within strict bounds to prevent visual overflow
                     this.spinOffset[reelIndex] = this.spinOffset[reelIndex] % maxOffset;
+                    if (this.spinOffset[reelIndex] < 0) {
+                        this.spinOffset[reelIndex] += maxOffset;
+                    }
                     
                     if (progress >= 1) {
                         this.spinOffset[reelIndex] = 0; // Reset to exact position
@@ -468,20 +483,28 @@ class Game {
     }
     
     renderReels() {
-        // Enhanced slot machine frame - adjusted for new spacing
+        // Enhanced slot machine frame - mobile-responsive
         const frameMargin = 20;
         const frameX = this.startX - frameMargin;
         const frameY = this.startY - frameMargin;
-        const frameWidth = (2 * this.reelSpacing) + this.reelWidth + 2 * frameMargin; // Fixed calculation for 3 reels
+        
+        // Calculate frame width dynamically based on actual reel layout
+        const totalReelWidth = (2 * this.reelSpacing) + this.reelWidth;
+        const frameWidth = totalReelWidth + 2 * frameMargin;
         const frameHeight = 3 * this.reelHeight + 2 * frameMargin;
         
+        // Ensure frame doesn't exceed canvas bounds
+        const dims = this.display.getScaledDimensions();
+        const maxFrameWidth = dims.width - 20; // Leave 10px margin on each side
+        const actualFrameWidth = Math.min(frameWidth, maxFrameWidth);
+        
         // Outer frame with gradient
-        const frameGradient = this.ctx.createLinearGradient(frameX, frameY, frameX + frameWidth, frameY + frameHeight);
+        const frameGradient = this.ctx.createLinearGradient(frameX, frameY, frameX + actualFrameWidth, frameY + frameHeight);
         frameGradient.addColorStop(0, '#4a4a4a');
         frameGradient.addColorStop(0.5, '#2a2a2a');
         frameGradient.addColorStop(1, '#1a1a1a');
         this.ctx.fillStyle = frameGradient;
-        this.ctx.fillRect(frameX, frameY, frameWidth, frameHeight);
+        this.ctx.fillRect(frameX, frameY, actualFrameWidth, frameHeight);
         
         // Inner frame
         const innerFrameMargin = 5;
@@ -489,17 +512,17 @@ class Game {
         this.ctx.fillRect(
             frameX + innerFrameMargin, 
             frameY + innerFrameMargin, 
-            frameWidth - 2 * innerFrameMargin, 
+            actualFrameWidth - 2 * innerFrameMargin, 
             frameHeight - 2 * innerFrameMargin
         );
         
-        // Reel background with subtle gradient - adjusted width
+        // Reel background with subtle gradient - responsive width
         const reelBgGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX, this.startY + 3 * this.reelHeight);
         reelBgGradient.addColorStop(0, 'rgba(30, 30, 30, 0.9)');
         reelBgGradient.addColorStop(0.5, 'rgba(20, 20, 20, 0.95)');
         reelBgGradient.addColorStop(1, 'rgba(10, 10, 10, 0.9)');
         this.ctx.fillStyle = reelBgGradient;
-        const bgWidth = (2 * this.reelSpacing) + this.reelWidth + 20; // Proper width for 3 reels
+        const bgWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive background width
         this.ctx.fillRect(this.startX - 10, this.startY - 10, bgWidth, 3 * this.reelHeight + 20);
         
         // Render each reel with individual clipping
@@ -521,20 +544,28 @@ class Game {
             for (let symbolIndex = 0; symbolIndex < 3; symbolIndex++) {
                 let y = this.startY + symbolIndex * this.reelHeight;
                 
-                // Apply spin offset only during spinning, and keep it controlled
+                // Apply spin offset only during spinning, with stricter mobile bounds
                 if (this.isSpinning) {
                     y += this.spinOffset[reelIndex];
-                    // Ensure y stays within reasonable bounds
-                    while (y > this.startY + 3 * this.reelHeight) {
+                    
+                    // iPhone-specific bounds checking
+                    const isIPhone = /iPhone/i.test(navigator.userAgent);
+                    const boundsLimit = isIPhone ? this.reelHeight * 0.5 : this.reelHeight;
+                    
+                    // Ensure y stays within very strict bounds for mobile
+                    while (y > this.startY + 3 * this.reelHeight + boundsLimit) {
                         y -= this.reelHeight;
                     }
-                    while (y < this.startY - this.reelHeight) {
+                    while (y < this.startY - boundsLimit) {
                         y += this.reelHeight;
                     }
                 }
                 
                 const symbol = this.reels[reelIndex][symbolIndex];
-                this.renderSymbol(symbol, x, y);
+                // Only render if within visible bounds
+                if (y >= this.startY - this.reelHeight && y <= this.startY + 4 * this.reelHeight) {
+                    this.renderSymbol(symbol, x, y);
+                }
             }
             
             // Render additional spinning symbols during animation (for smooth scrolling effect)
@@ -566,14 +597,14 @@ class Game {
             }
         }
         
-        // Add slot machine glass effect - adjusted width
-        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + (2 * this.reelSpacing) + this.reelWidth, this.startY + 3 * this.reelHeight);
+        // Add slot machine glass effect - responsive width
+        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
         glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
         glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
         glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
         glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
         this.ctx.fillStyle = glassGradient;
-        const glassWidth = (2 * this.reelSpacing) + this.reelWidth + 20; // Proper width for glass effect
+        const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
         this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
         
         // Payline indicators

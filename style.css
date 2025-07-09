@@ -131,7 +131,16 @@ body {
 /* Mobile optimizations */
 @media (max-width: 480px) {
     #game-container {
-        padding: 10px;
+        padding: 5px;
+        min-height: 100vh;
+        min-height: 100dvh; /* Dynamic viewport height for better mobile support */
+    }
+    
+    #game-canvas {
+        max-width: 95vw; /* Ensure canvas doesn't exceed viewport width */
+        max-height: 70vh; /* Leave space for controls */
+        width: auto !important;
+        height: auto !important;
     }
     
     #spin-button {
@@ -141,6 +150,26 @@ body {
     
     #game-info p {
         font-size: 12px;
+    }
+}
+
+/* iPhone specific adjustments */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+    #game-container {
+        padding: 2px;
+        overflow: hidden;
+    }
+    
+    #game-canvas {
+        max-width: 98vw;
+        max-height: 65vh;
+        border-width: 2px; /* Thinner border on mobile */
+        border-radius: 10px; /* Smaller radius */
+    }
+    
+    #controls {
+        margin-top: 15px;
+        gap: 10px;
     }
 }
 
@@ -173,6 +202,7 @@ body {
     
     #spin-button {
         -webkit-appearance: none;
+        appearance: none;
         -webkit-tap-highlight-color: transparent;
     }
 }
