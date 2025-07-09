@@ -1,17 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <base href="/Slots/"> <!-- Ensures relative paths resolve from /Slots/ -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4K Slot Machine</title>
-    <link rel="stylesheet" href="./styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="4K Slot Machine">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Ultimate 4K iPhone Slot Machine</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
-        <button id="spin-button">Spin</button>
+        <div id="controls">
+            <button id="spin-button" disabled>Spin</button>
+            <div id="game-info">
+                <p>Swipe up on the reels to spin!</p>
+            </div>
+        </div>
     </div>
+    
+    <!-- 4K Slot Machine Modules -->
+    <script src="./js/display.js"></script>
+    <script src="./js/assets.js"></script>
+    <script src="./js/effects.js"></script>
+    <script src="./js/game.js"></script>
     <script src="./main.js"></script>
 </body>
 </html>
