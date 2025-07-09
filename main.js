@@ -4,8 +4,8 @@ console.log('🎰 Starting Ultimate 4K iPhone Slot Machine...');
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        // Create game instance
-        const game = new SlotMachine4K();
+        // Create game instance - Fixed class name
+        const game = new Game();
         
         // Store global reference
         window.slotMachine = game;
