@@ -10,16 +10,18 @@ let score = 0;
 let isSpinning = false;
 const images = {};
 
-// Preload images with error handling
+// Preload images with error handling and fallback path
 symbols.forEach(symbol => {
     images[symbol] = new Image();
-    images[symbol].onload = () => console.log(`${symbol}.PNG loaded`);
-    images[symbol].onerror = () => console.log(`${symbol}.PNG failed to load`);
-    images[symbol].src = `./assets/${symbol}.PNG`; // Updated to .PNG
+    images[symbol].onload = () => console.log(`${symbol}.png loaded successfully`);
+    images[symbol].onerror = () => {
+        console.log(`${symbol}.png failed to load from ./assets/, trying /Slots/assets/`);
+        images[symbol].src = `/Slots/assets/${symbol}.png`; // Fallback path
+    };
+    images[symbol].src = `./assets/${symbol}.png`; // Updated to .png
 });
 
 function initializeGame() {
-    // Delay to allow image loading
     setTimeout(() => {
         if (Object.values(images).every(img => img.complete || img.error)) {
             ctx.fillStyle = '#1a1a1a';
@@ -27,15 +29,18 @@ function initializeGame() {
             drawScore();
             spinReels();
         } else {
-            console.log('Some images failed to load, check console for details');
+            console.error('Image loading issues detected, check console for details');
         }
-    }, 1000);
+    }, 1000); // Delay for loading
 }
 
 function drawReel(reel, x) {
     reel.forEach((symbol, index) => {
         if (images[symbol] && images[symbol].complete) {
             ctx.drawImage(images[symbol], x, index * 150 + 100, 100, 100);
+        } else {
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(x, index * 150 + 100, 100, 100); // Red placeholder for missing images
         }
     });
 }
