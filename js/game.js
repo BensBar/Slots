@@ -25,7 +25,7 @@ class Game {
         this.reelWidth = 100;
         this.reelHeight = 100;
         this.reelSpacing = 125;
-        this.startX = 50;
+        this.startX = 60;  // Adjusted for better centering
         this.startY = 200;
         
         // Animation state
@@ -466,25 +466,68 @@ class Game {
     }
     
     renderReels() {
-        // Reel background
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        // Enhanced slot machine frame
+        const frameMargin = 20;
+        const frameX = this.startX - frameMargin;
+        const frameY = this.startY - frameMargin;
+        const frameWidth = 3 * this.reelSpacing + 2 * frameMargin;
+        const frameHeight = 3 * this.reelHeight + 2 * frameMargin;
+        
+        // Outer frame with gradient
+        const frameGradient = this.ctx.createLinearGradient(frameX, frameY, frameX + frameWidth, frameY + frameHeight);
+        frameGradient.addColorStop(0, '#4a4a4a');
+        frameGradient.addColorStop(0.5, '#2a2a2a');
+        frameGradient.addColorStop(1, '#1a1a1a');
+        this.ctx.fillStyle = frameGradient;
+        this.ctx.fillRect(frameX, frameY, frameWidth, frameHeight);
+        
+        // Inner frame
+        const innerFrameMargin = 5;
+        this.ctx.fillStyle = '#000';
+        this.ctx.fillRect(
+            frameX + innerFrameMargin, 
+            frameY + innerFrameMargin, 
+            frameWidth - 2 * innerFrameMargin, 
+            frameHeight - 2 * innerFrameMargin
+        );
+        
+        // Reel background with subtle gradient
+        const reelBgGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX, this.startY + 3 * this.reelHeight);
+        reelBgGradient.addColorStop(0, 'rgba(30, 30, 30, 0.9)');
+        reelBgGradient.addColorStop(0.5, 'rgba(20, 20, 20, 0.95)');
+        reelBgGradient.addColorStop(1, 'rgba(10, 10, 10, 0.9)');
+        this.ctx.fillStyle = reelBgGradient;
         this.ctx.fillRect(this.startX - 10, this.startY - 10, 3 * this.reelSpacing + 20, 3 * this.reelHeight + 20);
         
-        // Render each reel
+        // Render each reel with individual clipping
         for (let reelIndex = 0; reelIndex < 3; reelIndex++) {
             const x = this.startX + reelIndex * this.reelSpacing;
             
+            // Create clipping region for this reel
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.rect(x - 5, this.startY - 5, this.reelWidth + 10, 3 * this.reelHeight + 10);
+            this.ctx.clip();
+            
+            // Individual reel border
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(x - 3, this.startY - 3, this.reelWidth + 6, 3 * this.reelHeight + 6);
+            
+            // Render static symbols
             for (let symbolIndex = 0; symbolIndex < 3; symbolIndex++) {
-                // **MAIN FIX: Wrap y position to keep symbols in window**
                 let y = this.startY + symbolIndex * this.reelHeight + this.spinOffset[reelIndex];
+                
+                // Wrap y position to keep symbols in visible range
                 y = ((y - this.startY) % (this.reelHeight * 3));
                 if (y < 0) y += this.reelHeight * 3;
                 y += this.startY;
+                
                 const symbol = this.reels[reelIndex][symbolIndex];
                 this.renderSymbol(symbol, x, y);
             }
             
-            // Render spinning symbols during animation
+            // Render spinning symbols during animation (with clipping)
             if (this.isSpinning && this.spinSpeed[reelIndex] > 0) {
                 for (let i = -2; i < 5; i++) {
                     let extraY = this.startY + i * this.reelHeight + this.spinOffset[reelIndex];
@@ -495,7 +538,29 @@ class Game {
                     this.renderSymbol(randomSymbol, x, extraY, 0.7); // Slightly transparent
                 }
             }
+            
+            // Restore clipping region
+            this.ctx.restore();
+            
+            // Add subtle reel separator
+            if (reelIndex < 2) {
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + this.reelWidth + this.reelSpacing / 2 - this.reelWidth / 2, this.startY);
+                this.ctx.lineTo(x + this.reelWidth + this.reelSpacing / 2 - this.reelWidth / 2, this.startY + 3 * this.reelHeight);
+                this.ctx.stroke();
+            }
         }
+        
+        // Add slot machine glass effect
+        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + 3 * this.reelSpacing, this.startY + 3 * this.reelHeight);
+        glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+        glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
+        glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
+        glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+        this.ctx.fillStyle = glassGradient;
+        this.ctx.fillRect(this.startX - 10, this.startY - 10, 3 * this.reelSpacing + 20, 3 * this.reelHeight + 20);
         
         // Payline indicators
         this.renderPaylines();
@@ -508,23 +573,44 @@ class Game {
             this.ctx.save();
             this.ctx.globalAlpha = alpha;
             
-            // Add subtle shadow
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            this.ctx.shadowBlur = 5;
-            this.ctx.shadowOffsetX = 2;
-            this.ctx.shadowOffsetY = 2;
+            // Add subtle shadow behind symbols
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            this.ctx.shadowBlur = 8;
+            this.ctx.shadowOffsetX = 3;
+            this.ctx.shadowOffsetY = 3;
+            
+            // Add symbol border for better definition
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
             
             this.ctx.drawImage(img, x, y, this.reelWidth, this.reelHeight);
             this.ctx.restore();
         } else {
-            // Fallback placeholder
-            this.ctx.fillStyle = `hsl(${this.assetManager.hashCode(symbol) % 360}, 70%, 50%)`;
+            // Enhanced fallback placeholder
+            const hash = this.assetManager.hashCode(symbol);
+            const hue = Math.abs(hash) % 360;
+            
+            // Gradient background for placeholder
+            const gradient = this.ctx.createLinearGradient(x, y, x + this.reelWidth, y + this.reelHeight);
+            gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
+            gradient.addColorStop(1, `hsl(${hue}, 70%, 40%)`);
+            this.ctx.fillStyle = gradient;
             this.ctx.fillRect(x, y, this.reelWidth, this.reelHeight);
             
+            // Border
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
+            
+            // Text
             this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 12px Arial';
+            this.ctx.font = 'bold 14px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(symbol.toUpperCase(), x + this.reelWidth / 2, y + this.reelHeight / 2);
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.shadowBlur = 2;
+            this.ctx.fillText(symbol.toUpperCase(), x + this.reelWidth / 2, y + this.reelHeight / 2 + 5);
+            this.ctx.shadowBlur = 0;
         }
     }
     
