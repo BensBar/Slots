@@ -2,28 +2,34 @@ const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const spinButton = document.getElementById('spin-button');
 const symbols = ['bell', 'cherry', 'clover', 'diamond', 'jackpot', 'lemon', 'seven', 'star', 'wild'];
-canvas.width = 375;
-canvas.height = 812;
+canvas.width = 375; // iPhone portrait width
+canvas.height = 812; // iPhone portrait height
 
 let reels = [[], [], []];
 let score = 0;
 let isSpinning = false;
 const images = {};
 
+// Preload images with error handling
 symbols.forEach(symbol => {
     images[symbol] = new Image();
-    images[symbol].onload = () => console.log(`${symbol} loaded`);
-    images[symbol].onerror = () => console.log(`${symbol} failed to load`);
-    images[symbol].src = `./assets/${symbol}.png`; // Adjusted path
+    images[symbol].onload = () => console.log(`${symbol}.PNG loaded`);
+    images[symbol].onerror = () => console.log(`${symbol}.PNG failed to load`);
+    images[symbol].src = `./assets/${symbol}.PNG`; // Updated to .PNG
 });
 
 function initializeGame() {
+    // Delay to allow image loading
     setTimeout(() => {
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawScore();
-        spinReels();
-    }, 1000); // Delay for image loading
+        if (Object.values(images).every(img => img.complete || img.error)) {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawScore();
+            spinReels();
+        } else {
+            console.log('Some images failed to load, check console for details');
+        }
+    }, 1000);
 }
 
 function drawReel(reel, x) {
@@ -71,4 +77,5 @@ function checkWin() {
     drawScore();
 }
 
+window.onload = initializeGame;
 spinButton.addEventListener('click', spinReels);
