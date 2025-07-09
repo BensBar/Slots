@@ -4,7 +4,8 @@ class Display4K {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.devicePixelRatio = window.devicePixelRatio || 1;
-        this.baseWidth = 500;  // Further increased width to accommodate all reels properly
+        // Increased base width significantly for iPhone to ensure all reels are visible
+        this.baseWidth = /iPhone/i.test(navigator.userAgent) ? 450 : 500;
         this.baseHeight = 812; // iPhone base height
         this.scale = 1;
         
@@ -25,9 +26,9 @@ class Display4K {
         
         // Calculate scale factor for 4K support with iPhone considerations
         if (isIPhone) {
-            // More conservative scaling for iPhone to ensure full visibility
+            // More generous scaling for iPhone to ensure full visibility of all reels
             this.scale = Math.min(
-                (viewportWidth * 0.9) / this.baseWidth,  // Leave 10% margin
+                (viewportWidth * 0.95) / this.baseWidth,  // Leave only 5% margin
                 (viewportHeight * 0.7) / this.baseHeight  // Leave 30% for controls
             );
         } else {
@@ -38,7 +39,7 @@ class Display4K {
         }
         
         // Ensure minimum scale for readability
-        this.scale = Math.max(this.scale, 0.6);
+        this.scale = Math.max(this.scale, 0.5);
         
         // Set actual canvas size for 4K
         this.canvas.width = this.baseWidth * this.devicePixelRatio * this.scale;

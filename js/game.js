@@ -22,21 +22,21 @@ class Game {
         this.multiplier = 1;
         
         // Visual settings - iPhone-optimized
-        this.reelWidth = 100;
-        this.reelHeight = 100;
-        this.reelSpacing = 130;  // Increased spacing between reels
+        this.reelWidth = 90;  // Slightly smaller for better fit
+        this.reelHeight = 90; // Smaller height for better proportions
         
         // Detect iPhone for positioning adjustments
         const isIPhone = /iPhone/i.test(navigator.userAgent);
         if (isIPhone) {
-            // Tighter spacing and positioning for iPhone
-            this.reelSpacing = 120;
-            this.startX = 60;  // Move further left to ensure third reel is visible
+            // Optimized spacing and positioning for iPhone
+            this.reelSpacing = 110;
+            this.startX = 40;  // Further left positioning
+            this.startY = 180; // Slightly higher
         } else {
-            this.startX = 75;  // Standard positioning for desktop
+            this.reelSpacing = 130;
+            this.startX = 75;
+            this.startY = 200;
         }
-        
-        this.startY = 200;
         
         // Animation state
         this.spinOffset = [0, 0, 0];
@@ -248,17 +248,18 @@ class Game {
                     const easedProgress = this.effects.easeInOutQuart(progress);
                     
                     // Spin speed decreases over time
-                    this.spinSpeed[reelIndex] = 20 * (1 - easedProgress);
+                    this.spinSpeed[reelIndex] = 15 * (1 - easedProgress); // Reduced speed for better control
                     this.spinOffset[reelIndex] += this.spinSpeed[reelIndex];
 
-                    // **MOBILE-OPTIMIZED FIX: Stricter bounds for iPhone**
-                    const isIPhone = /iPhone/i.test(navigator.userAgent);
-                    const maxOffset = isIPhone ? this.reelHeight : this.reelHeight * 2;
+                    // **STRICT BOUNDS FOR IPHONE - Prevent any overflow**
+                    const maxOffset = this.reelHeight * 0.8; // Very conservative bounds
                     
-                    // Keep offset within strict bounds to prevent visual overflow
-                    this.spinOffset[reelIndex] = this.spinOffset[reelIndex] % maxOffset;
-                    if (this.spinOffset[reelIndex] < 0) {
-                        this.spinOffset[reelIndex] += maxOffset;
+                    // Keep offset within very strict bounds
+                    while (this.spinOffset[reelIndex] >= maxOffset) {
+                        this.spinOffset[reelIndex] -= this.reelHeight;
+                    }
+                    while (this.spinOffset[reelIndex] < -maxOffset) {
+                        this.spinOffset[reelIndex] += this.reelHeight;
                     }
                     
                     if (progress >= 1) {
@@ -484,7 +485,7 @@ class Game {
     
     renderReels() {
         // Enhanced slot machine frame - mobile-responsive
-        const frameMargin = 20;
+        const frameMargin = 15; // Reduced margin for more space
         const frameX = this.startX - frameMargin;
         const frameY = this.startY - frameMargin;
         
@@ -493,9 +494,9 @@ class Game {
         const frameWidth = totalReelWidth + 2 * frameMargin;
         const frameHeight = 3 * this.reelHeight + 2 * frameMargin;
         
-        // Ensure frame doesn't exceed canvas bounds
+        // Ensure frame fits within canvas bounds
         const dims = this.display.getScaledDimensions();
-        const maxFrameWidth = dims.width - 20; // Leave 10px margin on each side
+        const maxFrameWidth = dims.width - 10; // Leave minimal margin
         const actualFrameWidth = Math.min(frameWidth, maxFrameWidth);
         
         // Outer frame with gradient
@@ -525,14 +526,15 @@ class Game {
         const bgWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive background width
         this.ctx.fillRect(this.startX - 10, this.startY - 10, bgWidth, 3 * this.reelHeight + 20);
         
-        // Render each reel with individual clipping
+        // Render each reel with STRICT clipping bounds
         for (let reelIndex = 0; reelIndex < 3; reelIndex++) {
             const x = this.startX + reelIndex * this.reelSpacing;
             
-            // Create clipping region for this reel - strictly bounded
+            // Create VERY STRICT clipping region for this reel
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.rect(x, this.startY, this.reelWidth, 3 * this.reelHeight);
+            // Clip with extra margin to ensure no overflow
+            this.ctx.rect(x - 2, this.startY - 2, this.reelWidth + 4, 3 * this.reelHeight + 4);
             this.ctx.clip();
             
             // Individual reel border
@@ -540,44 +542,32 @@ class Game {
             this.ctx.lineWidth = 1;
             this.ctx.strokeRect(x - 3, this.startY - 3, this.reelWidth + 6, 3 * this.reelHeight + 6);
             
-            // Render static symbols
+            // Render static symbols with strict bounds checking
             for (let symbolIndex = 0; symbolIndex < 3; symbolIndex++) {
                 let y = this.startY + symbolIndex * this.reelHeight;
                 
-                // Apply spin offset only during spinning, with stricter mobile bounds
+                // Apply spin offset only during spinning, with VERY strict bounds
                 if (this.isSpinning) {
                     y += this.spinOffset[reelIndex];
-                    
-                    // iPhone-specific bounds checking
-                    const isIPhone = /iPhone/i.test(navigator.userAgent);
-                    const boundsLimit = isIPhone ? this.reelHeight * 0.5 : this.reelHeight;
-                    
-                    // Ensure y stays within very strict bounds for mobile
-                    while (y > this.startY + 3 * this.reelHeight + boundsLimit) {
-                        y -= this.reelHeight;
-                    }
-                    while (y < this.startY - boundsLimit) {
-                        y += this.reelHeight;
-                    }
                 }
                 
                 const symbol = this.reels[reelIndex][symbolIndex];
-                // Only render if within visible bounds
-                if (y >= this.startY - this.reelHeight && y <= this.startY + 4 * this.reelHeight) {
+                // STRICT visibility check - only render if completely within bounds
+                if (y >= this.startY - 5 && y <= this.startY + 3 * this.reelHeight - this.reelHeight + 5) {
                     this.renderSymbol(symbol, x, y);
                 }
             }
             
-            // Render additional spinning symbols during animation (for smooth scrolling effect)
+            // Render additional spinning symbols during animation with strict bounds
             if (this.isSpinning && this.spinSpeed[reelIndex] > 0) {
-                // Add extra symbols above and below for smooth scrolling
+                // Only add symbols that will be visible within the strict clipping area
                 for (let i = -1; i <= 3; i++) {
                     let extraY = this.startY + i * this.reelHeight + this.spinOffset[reelIndex];
                     
-                    // Only render if within or near visible area
-                    if (extraY >= this.startY - this.reelHeight && extraY <= this.startY + 4 * this.reelHeight) {
+                    // VERY strict visibility check to prevent any overflow
+                    if (extraY >= this.startY - this.reelHeight && extraY <= this.startY + 3 * this.reelHeight) {
                         const randomSymbol = this.symbols[Math.floor(Math.random() * this.symbols.length)];
-                        this.renderSymbol(randomSymbol, x, extraY, 0.8); // Slightly transparent
+                        this.renderSymbol(randomSymbol, x, extraY, 0.8);
                     }
                 }
             }
@@ -620,9 +610,9 @@ class Game {
             
             // Add subtle shadow behind symbols
             this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            this.ctx.shadowBlur = 8;
-            this.ctx.shadowOffsetX = 3;
-            this.ctx.shadowOffsetY = 3;
+            this.ctx.shadowBlur = 6; // Reduced blur for iPhone
+            this.ctx.shadowOffsetX = 2;
+            this.ctx.shadowOffsetY = 2;
             
             // Add symbol border for better definition
             this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -632,7 +622,7 @@ class Game {
             this.ctx.drawImage(img, x, y, this.reelWidth, this.reelHeight);
             this.ctx.restore();
         } else {
-            // Enhanced fallback placeholder
+            // Enhanced fallback placeholder with smaller text for iPhone
             const hash = this.assetManager.hashCode(symbol);
             const hue = Math.abs(hash) % 360;
             
@@ -648,13 +638,13 @@ class Game {
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
             
-            // Text
+            // Text - smaller for iPhone
             this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 14px Arial';
+            this.ctx.font = 'bold 12px Arial'; // Smaller font
             this.ctx.textAlign = 'center';
             this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             this.ctx.shadowBlur = 2;
-            this.ctx.fillText(symbol.toUpperCase(), x + this.reelWidth / 2, y + this.reelHeight / 2 + 5);
+            this.ctx.fillText(symbol.toUpperCase(), x + this.reelWidth / 2, y + this.reelHeight / 2 + 3);
             this.ctx.shadowBlur = 0;
         }
     }
@@ -662,6 +652,7 @@ class Game {
     renderUI() {
         // ... (your existing UI rendering code)
     }
+    
     
     renderPaylines() {
         // ... (your existing payline rendering code)
