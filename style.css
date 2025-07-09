@@ -58,6 +58,10 @@ body {
     -webkit-backdrop-filter: blur(10px);
     position: relative;
     z-index: 2;
+    /* Prevent canvas overflow on iPhone */
+    max-width: 100vw;
+    max-height: 70vh;
+    object-fit: contain;
 }
 
 #controls {
@@ -173,6 +177,24 @@ body {
     }
 }
 
+/* iPhone specific viewport fixes */
+@supports (-webkit-touch-callout: none) {
+    #game-container {
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+    
+    body {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    #spin-button {
+        -webkit-appearance: none;
+        appearance: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
 /* Landscape mode adjustments */
 @media (orientation: landscape) and (max-height: 600px) {
     #game-container {
@@ -191,18 +213,5 @@ body {
     #game-canvas {
         image-rendering: -webkit-optimize-contrast;
         image-rendering: crisp-edges;
-    }
-}
-
-/* iOS specific styles */
-@supports (-webkit-touch-callout: none) {
-    body {
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    #spin-button {
-        -webkit-appearance: none;
-        appearance: none;
-        -webkit-tap-highlight-color: transparent;
     }
 }
