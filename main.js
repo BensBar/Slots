@@ -6,12 +6,17 @@ canvas.width = 375;
 canvas.height = 812;
 
 let reels = [[], [], []];
+const images = {};
+
+// Preload images
+symbols.forEach(symbol => {
+    images[symbol] = new Image();
+    images[symbol].src = `/assets/${symbol}.PNG`;
+});
 
 function drawReel(reel, x) {
     reel.forEach((symbol, index) => {
-        const img = new Image();
-        img.src = `/assets/${symbol}.PNG`;
-        ctx.drawImage(img, x, index * 100, 100, 100);
+        ctx.drawImage(images[symbol], x, index * 100, 100, 100);
     });
 }
 
