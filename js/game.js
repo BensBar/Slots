@@ -237,8 +237,11 @@ class Game {
     animateReel(reelIndex, newSymbols, delay) {
         return new Promise((resolve) => {
             setTimeout(() => {
-                const duration = 1000 + Math.random() * 500; // Random duration for each reel
+                const duration = 1000 + Math.random() * 500;
                 const startTime = Date.now();
+                
+                // Reset offset at start to ensure clean animation
+                this.spinOffset[reelIndex] = 0;
                 
                 const animate = () => {
                     const elapsed = Date.now() - startTime;
@@ -247,25 +250,30 @@ class Game {
                     // Easing function for smooth stop
                     const easedProgress = this.effects.easeInOutQuart(progress);
                     
-                    // Spin speed decreases over time
-                    this.spinSpeed[reelIndex] = 15 * (1 - easedProgress); // Reduced speed for better control
-                    this.spinOffset[reelIndex] += this.spinSpeed[reelIndex];
-
-                    // **STRICT BOUNDS FOR IPHONE - Prevent any overflow**
-                    const maxOffset = this.reelHeight * 0.8; // Very conservative bounds
+                    // Calculate spin speed with better control for iPhone
+                    const baseSpeed = 8; // Reduced from 15 for more control
+                    this.spinSpeed[reelIndex] = baseSpeed * (1 - easedProgress);
                     
-                    // Keep offset within very strict bounds
-                    while (this.spinOffset[reelIndex] >= maxOffset) {
-                        this.spinOffset[reelIndex] -= this.reelHeight;
-                    }
-                    while (this.spinOffset[reelIndex] < -maxOffset) {
-                        this.spinOffset[reelIndex] += this.reelHeight;
+                    // Only update offset during spinning phase
+                    if (progress < 0.95) {
+                        this.spinOffset[reelIndex] += this.spinSpeed[reelIndex];
+                        
+                        // STRICT bounds management - wrap around properly
+                        while (this.spinOffset[reelIndex] >= this.reelHeight) {
+                            this.spinOffset[reelIndex] -= this.reelHeight;
+                        }
+                        while (this.spinOffset[reelIndex] < 0) {
+                            this.spinOffset[reelIndex] += this.reelHeight;
+                        }
+                    } else {
+                        // Final phase - ease to exact stop position
+                        this.spinOffset[reelIndex] *= (1 - (progress - 0.95) * 20);
                     }
                     
                     if (progress >= 1) {
-                        this.spinOffset[reelIndex] = 0; // Reset to exact position
+                        // Force exact stop position
+                        this.spinOffset[reelIndex] = 0;
                         this.spinSpeed[reelIndex] = 0;
-                        // Play reel stop sound
                         this.audio.play('reel_stop');
                         resolve();
                         return;
@@ -561,11 +569,14 @@ class Game {
             // Render additional spinning symbols during animation with strict bounds
             if (this.isSpinning && this.spinSpeed[reelIndex] > 0) {
                 // Only add symbols that will be visible within the strict clipping area
-                for (let i = -1; i <= 3; i++) {
+                for (let i = -1; i <= 4; i++) {
                     let extraY = this.startY + i * this.reelHeight + this.spinOffset[reelIndex];
                     
-                    // VERY strict visibility check to prevent any overflow
-                    if (extraY >= this.startY - this.reelHeight && extraY <= this.startY + 3 * this.reelHeight) {
+                    // Ultra-strict visibility check for iPhone
+                    const topBound = this.startY - 10;
+                    const bottomBound = this.startY + 3 * this.reelHeight + 10;
+                    
+                    if (extraY >= topBound && extraY + this.reelHeight <= bottomBound) {
                         const randomSymbol = this.symbols[Math.floor(Math.random() * this.symbols.length)];
                         this.renderSymbol(randomSymbol, x, extraY, 0.8);
                     }
@@ -581,85 +592,156 @@ class Game {
                 this.ctx.lineWidth = 1;
                 this.ctx.beginPath();
                 const separatorX = x + this.reelWidth + (this.reelSpacing - this.reelWidth) / 2;
-                this.ctx.moveTo(separatorX, this.startY);
-                this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
-                this.ctx.stroke();
-            }
-        }
+this.ctx.moveTo(separatorX, this.startY);
+this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
+this.ctx.stroke();
+}
+}
+    // Add slot machine glass effect - responsive width
+    const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
+    glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+    glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
+    glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
+    glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+    this.ctx.fillStyle = glassGradient;
+    const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
+    this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
+    
+    // Payline indicators
+    this.renderPaylines();
+}
+
+renderSymbol(symbol, x, y, alpha = 1) {
+    const img = this.assetManager.getImage(symbol);
+    
+    if (img && this.assetManager.isLoaded(symbol)) {
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
         
-        // Add slot machine glass effect - responsive width
-        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
-        glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-        glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
-        glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
-        glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
-        this.ctx.fillStyle = glassGradient;
-        const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
-        this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
+        // Add subtle shadow behind symbols
+        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        this.ctx.shadowBlur = 6; // Reduced blur for iPhone
+        this.ctx.shadowOffsetX = 2;
+        this.ctx.shadowOffsetY = 2;
         
-        // Payline indicators
-        this.renderPaylines();
-    }
-    
-    renderSymbol(symbol, x, y, alpha = 1) {
-        const img = this.assetManager.getImage(symbol);
+        // Add symbol border for better definition
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
         
-        if (img && this.assetManager.isLoaded(symbol)) {
-            this.ctx.save();
-            this.ctx.globalAlpha = alpha;
-            
-            // Add subtle shadow behind symbols
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-            this.ctx.shadowBlur = 6; // Reduced blur for iPhone
-            this.ctx.shadowOffsetX = 2;
-            this.ctx.shadowOffsetY = 2;
-            
-            // Add symbol border for better definition
-            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            this.ctx.lineWidth = 1;
-            this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
-            
-            this.ctx.drawImage(img, x, y, this.reelWidth, this.reelHeight);
-            this.ctx.restore();
-        } else {
-            // Enhanced fallback placeholder with smaller text for iPhone
-            const hash = this.assetManager.hashCode(symbol);
-            const hue = Math.abs(hash) % 360;
-            
-            // Gradient background for placeholder
-            const gradient = this.ctx.createLinearGradient(x, y, x + this.reelWidth, y + this.reelHeight);
-            gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
-            gradient.addColorStop(1, `hsl(${hue}, 70%, 40%)`);
-            this.ctx.fillStyle = gradient;
-            this.ctx.fillRect(x, y, this.reelWidth, this.reelHeight);
-            
-            // Border
-            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
-            
-            // Text - smaller for iPhone
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 12px Arial'; // Smaller font
-            this.ctx.textAlign = 'center';
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            this.ctx.shadowBlur = 2;
-            this.ctx.fillText(symbol.toUpperCase(), x + this.reelWidth / 2, y + this.reelHeight / 2 + 3);
-            this.ctx.shadowBlur = 0;
-        }
-    }
-    
-    renderUI() {
-        // ... (your existing UI rendering code)
-    }
-    
-    
-    renderPaylines() {
-        // ... (your existing payline rendering code)
+        this.ctx.drawImage(img, x, y, this.reelWidth, this.reelHeight);
+        this.ctx.restore();
+    } else {
+        // Enhanced fallback placeholder with smaller text for iPhone
+        const hash = this.assetManager.hashCode(symbol);
+        const hue = Math.abs(hash) % 360;
+        
+        // Gradient background for placeholder
+        const gradient = this.ctx.createLinearGradient(x, y, x + this.reelWidth, y + this.reelHeight);
+        gradient.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
+        gradient.addColorStop(1, `hsl(${hue}, 70%, 40%)`);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(x, y, this.reelWidth, this.reelHeight);
+        
+        // Border
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x, y, this.reelWidth, this.reelHeight);
+        
+        // Text - smaller for iPhone
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 12px Arial'; // Smaller font
+        this.ctx.textAlign = 'center';
+        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        this.ctx.shadowBlur = 2;
+        this.ctx.fillText(symbol.toUpperCase(), x + this.reelWidth / 2, y + this.reelHeight / 2 + 3);
+        this.ctx.shadowBlur = 0;
     }
 }
 
-// Instantiate the game once DOM is loaded
-window.addEventListener('DOMContentLoaded', () => {
-    new Game();
-});
+renderUI() {
+    const dims = this.display.getScaledDimensions();
+    const isIPhone = /iPhone/i.test(navigator.userAgent);
+    
+    // UI positioning - adjust for iPhone
+    const uiY = isIPhone ? dims.height - 150 : dims.height - 120;
+    const fontSize = isIPhone ? 16 : 20;
+    
+    // Background for UI
+    const uiGradient = this.ctx.createLinearGradient(0, uiY - 20, 0, dims.height);
+    uiGradient.addColorStop(0, 'rgba(0, 0, 0, 0.1)');
+    uiGradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
+    this.ctx.fillStyle = uiGradient;
+    this.ctx.fillRect(0, uiY - 20, dims.width, dims.height - uiY + 20);
+    
+    // Game stats with responsive positioning
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = `bold ${fontSize}px Arial`;
+    this.ctx.textAlign = 'left';
+    
+    const leftMargin = isIPhone ? 20 : 30;
+    const statSpacing = isIPhone ? 25 : 30;
+    
+    // Score
+    this.ctx.fillText(`Credits: ${this.score}`, leftMargin, uiY);
+    
+    // Bet
+    this.ctx.fillText(`Bet: ${this.bet}`, leftMargin, uiY + statSpacing);
+    
+    // Paylines
+    this.ctx.fillText(`Lines: ${this.paylines}`, leftMargin, uiY + statSpacing * 2);
+    
+    // Bonus info (if active)
+    if (this.bonusRounds > 0) {
+        this.ctx.fillStyle = '#ffd700';
+        this.ctx.font = `bold ${fontSize + 2}px Arial`;
+        this.ctx.textAlign = 'right';
+        this.ctx.fillText(`FREE SPINS: ${this.bonusRounds}`, dims.width - leftMargin, uiY);
+        this.ctx.fillText(`MULTIPLIER: ${this.multiplier}x`, dims.width - leftMargin, uiY + statSpacing);
+    }
+}
+
+renderPaylines() {
+    if (this.paylines <= 0) return;
+    
+    const dims = this.display.getScaledDimensions();
+    
+    // Payline colors
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+    
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.3;
+    this.ctx.lineWidth = 2;
+    
+    // Draw horizontal paylines
+    for (let line = 0; line < Math.min(this.paylines, 3); line++) {
+        this.ctx.strokeStyle = colors[line % colors.length];
+        const y = this.startY + line * this.reelHeight + this.reelHeight / 2;
+        
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX, y);
+        this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth, y);
+        this.ctx.stroke();
+    }
+    
+    // Draw diagonal paylines if applicable
+    if (this.paylines >= 5) {
+        // Diagonal 1 (top-left to bottom-right)
+        this.ctx.strokeStyle = colors[3 % colors.length];
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+        this.ctx.lineTo(this.startX + this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight + this.reelHeight / 2);
+        this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+        this.ctx.stroke();
+        
+        // Diagonal 2 (top-right to bottom-left)
+        this.ctx.strokeStyle = colors[4 % colors.length];
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX + this.reelWidth / 2, this.startY + 2 * this.reelHeight + this.reelHeight / 2);
+        this.ctx.lineTo(this.startX + this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight + this.reelHeight / 2);
+        this.ctx.lineTo(this.startX + 2 * this.reelSpacing + this.reelWidth / 2, this.startY + this.reelHeight / 2);
+        this.ctx.stroke();
+    }
+    
+    this.ctx.restore();
+}
