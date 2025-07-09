@@ -4,7 +4,7 @@ class Display4K {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.devicePixelRatio = window.devicePixelRatio || 1;
-        this.baseWidth = 450;  // Increased width to accommodate all reels
+        this.baseWidth = 500;  // Further increased width to accommodate all reels properly
         this.baseHeight = 812; // iPhone base height
         this.scale = 1;
         

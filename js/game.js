@@ -24,8 +24,8 @@ class Game {
         // Visual settings
         this.reelWidth = 100;
         this.reelHeight = 100;
-        this.reelSpacing = 125;
-        this.startX = 60;  // Adjusted for better centering
+        this.reelSpacing = 130;  // Increased spacing between reels
+        this.startX = 75;  // Adjusted for better centering with wider spacing
         this.startY = 200;
         
         // Animation state
@@ -241,11 +241,13 @@ class Game {
                     this.spinSpeed[reelIndex] = 20 * (1 - easedProgress);
                     this.spinOffset[reelIndex] += this.spinSpeed[reelIndex];
 
-                    // **MAIN FIX: Clamp spinOffset to stay in visible range**
-                    this.spinOffset[reelIndex] = this.spinOffset[reelIndex] % (this.reelHeight * 3);
+                    // **IMPROVED FIX: Keep spinOffset within proper bounds**
+                    // Constrain offset to prevent symbols from going below reels
+                    const maxOffset = this.reelHeight * 2; // Allow maximum of 2 symbol heights offset
+                    this.spinOffset[reelIndex] = this.spinOffset[reelIndex] % maxOffset;
                     
                     if (progress >= 1) {
-                        this.spinOffset[reelIndex] = 0;
+                        this.spinOffset[reelIndex] = 0; // Reset to exact position
                         this.spinSpeed[reelIndex] = 0;
                         // Play reel stop sound
                         this.audio.play('reel_stop');
@@ -466,11 +468,11 @@ class Game {
     }
     
     renderReels() {
-        // Enhanced slot machine frame
+        // Enhanced slot machine frame - adjusted for new spacing
         const frameMargin = 20;
         const frameX = this.startX - frameMargin;
         const frameY = this.startY - frameMargin;
-        const frameWidth = 3 * this.reelSpacing + 2 * frameMargin;
+        const frameWidth = (2 * this.reelSpacing) + this.reelWidth + 2 * frameMargin; // Fixed calculation for 3 reels
         const frameHeight = 3 * this.reelHeight + 2 * frameMargin;
         
         // Outer frame with gradient
@@ -491,22 +493,23 @@ class Game {
             frameHeight - 2 * innerFrameMargin
         );
         
-        // Reel background with subtle gradient
+        // Reel background with subtle gradient - adjusted width
         const reelBgGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX, this.startY + 3 * this.reelHeight);
         reelBgGradient.addColorStop(0, 'rgba(30, 30, 30, 0.9)');
         reelBgGradient.addColorStop(0.5, 'rgba(20, 20, 20, 0.95)');
         reelBgGradient.addColorStop(1, 'rgba(10, 10, 10, 0.9)');
         this.ctx.fillStyle = reelBgGradient;
-        this.ctx.fillRect(this.startX - 10, this.startY - 10, 3 * this.reelSpacing + 20, 3 * this.reelHeight + 20);
+        const bgWidth = (2 * this.reelSpacing) + this.reelWidth + 20; // Proper width for 3 reels
+        this.ctx.fillRect(this.startX - 10, this.startY - 10, bgWidth, 3 * this.reelHeight + 20);
         
         // Render each reel with individual clipping
         for (let reelIndex = 0; reelIndex < 3; reelIndex++) {
             const x = this.startX + reelIndex * this.reelSpacing;
             
-            // Create clipping region for this reel
+            // Create clipping region for this reel - strictly bounded
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.rect(x - 5, this.startY - 5, this.reelWidth + 10, 3 * this.reelHeight + 10);
+            this.ctx.rect(x, this.startY, this.reelWidth, 3 * this.reelHeight);
             this.ctx.clip();
             
             // Individual reel border
@@ -516,26 +519,35 @@ class Game {
             
             // Render static symbols
             for (let symbolIndex = 0; symbolIndex < 3; symbolIndex++) {
-                let y = this.startY + symbolIndex * this.reelHeight + this.spinOffset[reelIndex];
+                let y = this.startY + symbolIndex * this.reelHeight;
                 
-                // Wrap y position to keep symbols in visible range
-                y = ((y - this.startY) % (this.reelHeight * 3));
-                if (y < 0) y += this.reelHeight * 3;
-                y += this.startY;
+                // Apply spin offset only during spinning, and keep it controlled
+                if (this.isSpinning) {
+                    y += this.spinOffset[reelIndex];
+                    // Ensure y stays within reasonable bounds
+                    while (y > this.startY + 3 * this.reelHeight) {
+                        y -= this.reelHeight;
+                    }
+                    while (y < this.startY - this.reelHeight) {
+                        y += this.reelHeight;
+                    }
+                }
                 
                 const symbol = this.reels[reelIndex][symbolIndex];
                 this.renderSymbol(symbol, x, y);
             }
             
-            // Render spinning symbols during animation (with clipping)
+            // Render additional spinning symbols during animation (for smooth scrolling effect)
             if (this.isSpinning && this.spinSpeed[reelIndex] > 0) {
-                for (let i = -2; i < 5; i++) {
+                // Add extra symbols above and below for smooth scrolling
+                for (let i = -1; i <= 3; i++) {
                     let extraY = this.startY + i * this.reelHeight + this.spinOffset[reelIndex];
-                    extraY = ((extraY - this.startY) % (this.reelHeight * 3));
-                    if (extraY < 0) extraY += this.reelHeight * 3;
-                    extraY += this.startY;
-                    const randomSymbol = this.symbols[Math.floor(Math.random() * this.symbols.length)];
-                    this.renderSymbol(randomSymbol, x, extraY, 0.7); // Slightly transparent
+                    
+                    // Only render if within or near visible area
+                    if (extraY >= this.startY - this.reelHeight && extraY <= this.startY + 4 * this.reelHeight) {
+                        const randomSymbol = this.symbols[Math.floor(Math.random() * this.symbols.length)];
+                        this.renderSymbol(randomSymbol, x, extraY, 0.8); // Slightly transparent
+                    }
                 }
             }
             
@@ -547,20 +559,22 @@ class Game {
                 this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                 this.ctx.lineWidth = 1;
                 this.ctx.beginPath();
-                this.ctx.moveTo(x + this.reelWidth + this.reelSpacing / 2 - this.reelWidth / 2, this.startY);
-                this.ctx.lineTo(x + this.reelWidth + this.reelSpacing / 2 - this.reelWidth / 2, this.startY + 3 * this.reelHeight);
+                const separatorX = x + this.reelWidth + (this.reelSpacing - this.reelWidth) / 2;
+                this.ctx.moveTo(separatorX, this.startY);
+                this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
                 this.ctx.stroke();
             }
         }
         
-        // Add slot machine glass effect
-        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + 3 * this.reelSpacing, this.startY + 3 * this.reelHeight);
+        // Add slot machine glass effect - adjusted width
+        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + (2 * this.reelSpacing) + this.reelWidth, this.startY + 3 * this.reelHeight);
         glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
         glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
         glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
         glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
         this.ctx.fillStyle = glassGradient;
-        this.ctx.fillRect(this.startX - 10, this.startY - 10, 3 * this.reelSpacing + 20, 3 * this.reelHeight + 20);
+        const glassWidth = (2 * this.reelSpacing) + this.reelWidth + 20; // Proper width for glass effect
+        this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
         
         // Payline indicators
         this.renderPaylines();
