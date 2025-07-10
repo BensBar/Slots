@@ -3,72 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced 4K 3-Reel Slot Machine Game</title>
+    <title>Phenomenal 4K Slot Machine Game</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #111;
+            background: radial-gradient(circle, #1a1a1a, #000);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: white;
-            font-family: Arial, sans-serif;
+            color: gold;
+            font-family: 'Arial Black', sans-serif;
+            text-shadow: 0 0 10px #ff4500;
         }
         #game-container {
             position: relative;
-            width: 100%;
-            max-width: 1920px; /* Optimized for 4K, responsive */
+            width: 90vw;
+            max-width: 2560px; /* 4K ready */
             aspect-ratio: 16/9;
             overflow: hidden;
+            border: 5px solid gold;
+            box-shadow: 0 0 50px gold;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://2000.svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="black"/%3E%3Ccircle cx="50" cy="50" r="40" fill="none" stroke="gold" stroke-width="2" stroke-dasharray="5,5"/%3E%3C/svg%3E');
+            background-size: cover;
         }
         #slot-canvas {
             width: 100%;
             height: 100%;
-            background-color: #222;
+            background-color: rgba(0,0,0,0.5);
         }
         #controls {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
             margin-top: 20px;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 10px;
+            padding: 15px;
+            background-color: rgba(51,51,51,0.8);
+            border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            gap: 10px;
         }
-        #balance {
-            font-size: 2em;
-            margin-bottom: 10px;
+        #balance, #bet-amount {
+            font-size: 1.8em;
+            margin: 0 10px;
         }
-        #spin-button {
-            padding: 15px 30px;
-            font-size: 1.5em;
+        #spin-button, #auto-spin-button, #paytable-button, #bet-up, #bet-down {
+            padding: 12px 25px;
+            font-size: 1.4em;
             background-color: #ff4500;
             border: none;
             color: white;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 8px;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        #spin-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #ff4500;
+        #spin-button:hover, #auto-spin-button:hover, #paytable-button:hover, #bet-up:hover, #bet-down:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #ff4500;
         }
-        #spin-button:disabled {
+        #spin-button:disabled, #auto-spin-button:disabled {
             background-color: #555;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
         #message {
-            font-size: 1.5em;
+            font-size: 1.8em;
             margin-top: 10px;
             color: #ffd700;
-            text-shadow: 0 0 5px #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+            width: 100%;
+            text-align: center;
+        }
+        #paytable {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 10;
+            color: white;
+            max-width: 80%;
+            overflow: auto;
+        }
+        #paytable h2 {
+            text-align: center;
+        }
+        #paytable ul {
+            list-style: none;
+            padding: 0;
+        }
+        #paytable li {
+            margin: 10px 0;
+        }
+        #close-paytable {
+            float: right;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -78,29 +114,71 @@
     </div>
     <div id="controls">
         <div id="balance">Balance: 1000</div>
-        <button id="spin-button">Spin (Bet: 10)</button>
+        <button id="bet-down">-</button>
+        <div id="bet-amount">Bet: 10</div>
+        <button id="bet-up">+</button>
+        <button id="spin-button">Spin</button>
+        <button id="auto-spin-button">Auto Spin</button>
+        <button id="paytable-button">Paytable</button>
         <div id="message"></div>
     </div>
-    <audio id="spin-sound" src="data:audio/mpeg;base64,//MUXEXYZ+... (base64 encoded spin sound)"></audio> <!-- Placeholder; in real, embed or link audio -->
-    <audio id="win-sound" src="data:audio/mpeg;base64,//MUXEXYZ+... (base64 encoded win sound)"></audio> <!-- Placeholder -->
+    <div id="paytable">
+        <span id="close-paytable">X</span>
+        <h2>Paytable</h2>
+        <ul>
+            <li>🍒🍒🍒: 20x</li>
+            <li>🍋🍋🍋: 30x</li>
+            <li>🍉🍉🍉: 40x</li>
+            <li>🔔🔔🔔: 50x</li>
+            <li>⭐⭐⭐: 100x (Scatter - 3+ triggers free spins)</li>
+            <li>777: 200x</li>
+            <li>BARBARBABAR: 500x</li>
+            <li>💎💎💎: 1000x (Wild - substitutes for all except scatter)</li>
+            <li>3 Bells: Bonus Round</li>
+        </ul>
+        <p>Free Spins: 3+ ⭐ gives 10 free spins with 2x multiplier.</p>
+        <p>Bonus Round: Pick from prizes for extra credits.</p>
+    </div>
+    <audio id="spin-sound" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Slot-machine-sound-effect.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Slot-machine-sound-effect.mp3" preload="auto"></audio> <!-- Use same for now -->
     <script>
-        // Enhanced Slot Machine Game Logic with 4K Sizzle
+        // Phenomenal Slot Machine Game Logic with 4K Sizzle
         const canvas = document.getElementById('slot-canvas');
         const ctx = canvas.getContext('2d');
         const spinButton = document.getElementById('spin-button');
+        const autoSpinButton = document.getElementById('auto-spin-button');
+        const betUp = document.getElementById('bet-up');
+        const betDown = document.getElementById('bet-down');
         const balanceElem = document.getElementById('balance');
+        const betAmountElem = document.getElementById('bet-amount');
         const messageElem = document.getElementById('message');
+        const paytableButton = document.getElementById('paytable-button');
+        const paytable = document.getElementById('paytable');
+        const closePaytable = document.getElementById('close-paytable');
         const spinSound = document.getElementById('spin-sound');
         const winSound = document.getElementById('win-sound');
 
-        // Game Constants - Updated for 3-reel configuration
-        const REELS = 3; // Classic 3-reel slot machine
+        // Game Constants
+        const REELS = 5;
         const ROWS = 3;
-        const SYMBOL_SIZE = 150; // Base size, scaled for 4K
-        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '⭐', '7', 'BAR', '💎']; // Classic symbols
-        const REEL_STRIP_LENGTH = SYMBOLS.length * 4; // Longer strip for smoother spins
-        const SPIN_DURATION = 2500; // Slightly longer for drama
-        const BET_AMOUNT = 10;
+        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '⭐', '7', 'BAR', '💎']; // 💎 Wild, ⭐ Scatter
+        const REEL_STRIP_LENGTH = SYMBOLS.length * 5; // Even longer for smoothness
+        const SPIN_DURATION = 3000; // Dramatic spin
+        const BET_STEP = 10;
+        const MIN_BET = 10;
+        const MAX_BET = 100;
+        const PAYLINES = [
+            [1,1,1,1,1], // Middle
+            [0,0,0,0,0], // Top
+            [2,2,2,2,2], // Bottom
+            [0,1,2,1,0], // V
+            [2,1,0,1,2], // Inverted V
+            [0,0,1,2,2], // Diagonal down
+            [2,2,1,0,0], // Diagonal up
+            [1,0,0,0,1], // W shape
+            [1,2,2,2,1], // M shape
+            [0,1,0,1,0] // Zigzag
+        ];
         const PAYTABLE = {
             '🍒🍒🍒': 20,
             '🍋🍋🍋': 30,
@@ -109,27 +187,27 @@
             '⭐⭐⭐': 100,
             '777': 200,
             'BARBARBAR': 500,
-            '💎💎💎': 1000 // Jackpot symbol
+            '💎💎💎': 1000
         };
-        const PAYLINES = [
-            [1,1,1], // Middle horizontal
-            [0,0,0], // Top horizontal
-            [2,2,2], // Bottom horizontal
-            [0,1,2], // Diagonal top-left to bottom-right
-            [2,1,0]  // Diagonal top-right to bottom-left
-        ];
+        const FREE_SPINS_COUNT = 10;
+        const FREE_SPINS_MULTIPLIER = 2;
 
         // Game State
-        let balance = 1000;
+        let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 1000;
+        let betAmount = MIN_BET;
         let isSpinning = false;
+        let autoSpinning = false;
+        let freeSpins = 0;
         let reelPositions = Array(REELS).fill(0);
         let reelVelocities = Array(REELS).fill(0);
         let reelTargets = Array(REELS).fill(0);
         let reelStrips = Array(REELS).fill().map(() => generateReelStrip());
         let lastFrameTime = 0;
-        let particles = []; // For win effects
+        let particles = [];
+        let winningLines = [];
+        let bonusRound = false;
 
-        // Scale for 4K/high-DPI
+        // Scale for 4K
         function resizeCanvas() {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
@@ -141,16 +219,16 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Generate reel strip
+        // Generate reel strip with more variety
         function generateReelStrip() {
             let strip = [];
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i = 5; i++) {
                 strip = strip.concat(SYMBOLS.sort(() => Math.random() - 0.5));
             }
             return strip;
         }
 
-        // Render
+        // Render with enhanced visuals
         function render() {
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
@@ -162,16 +240,16 @@
 
             ctx.clearRect(0, 0, width, height);
 
-            // Draw reel backgrounds with gradient for sizzle
+            // Draw reel backgrounds with metallic gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, '#444');
-            gradient.addColorStop(1, '#222');
+            gradient.addColorStop(0, '#555');
+            gradient.addColorStop(1, '#111');
             for (let i = 0; i < REELS; i++) {
                 ctx.fillStyle = gradient;
                 ctx.fillRect(i * reelWidth, 0, reelWidth, height);
             }
 
-            // Draw symbols with shadow for depth
+            // Draw symbols with glow and shadow
             for (let reel = 0; reel < REELS; reel++) {
                 for (let row = -1; row <= ROWS; row++) {
                     const pos = (reelPositions[reel] + row + REEL_STRIP_LENGTH) % REEL_STRIP_LENGTH;
@@ -182,8 +260,8 @@
 
                     ctx.font = `${symbolSize}px Arial`;
                     ctx.fillStyle = 'white';
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = 'gold';
+                    ctx.shadowBlur = 10;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillText(symbol, x + symbolSize / 2, y + symbolSize / 2);
@@ -191,9 +269,9 @@
                 }
             }
 
-            // Draw paylines
-            ctx.strokeStyle = 'rgba(255,215,0,0.3)';
-            ctx.lineWidth = 4;
+            // Draw paylines with glow
+            ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+            ctx.lineWidth = 5;
             for (let line of PAYLINES) {
                 ctx.beginPath();
                 for (let i = 0; i < REELS; i++) {
@@ -205,15 +283,33 @@
                 ctx.stroke();
             }
 
-            // Render particles for win sizzle
+            // Highlight winning lines with animation
+            if (winningLines.length > 0) {
+                const time = Date.now() / 1000;
+                ctx.strokeStyle = `rgba(255, 0, 0, ${Math.sin(time * 10) * 0.5 + 0.5})`;
+                ctx.lineWidth = 8;
+                for (let idx of winningLines) {
+                    const line = PAYLINES[idx];
+                    ctx.beginPath();
+                    for (let i = 0; i < REELS; i++) {
+                        const x = i * reelWidth + reelWidth / 2;
+                        const y = line[i] * rowHeight + rowHeight / 2;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                }
+            }
+
+            // Render particles with glow
             particles.forEach(p => {
                 ctx.fillStyle = `rgba(255,215,0,${p.alpha})`;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fill();
                 p.y -= p.speed;
-                p.alpha -= 0.01;
-                p.size += 0.1;
+                p.alpha -= 0.005;
+                p.size += 0.2;
             });
             particles = particles.filter(p => p.alpha > 0);
         }
@@ -221,7 +317,7 @@
         // Animation loop
         function animate(time) {
             if (!lastFrameTime) lastFrameTime = time;
-            const delta = (time - lastFrameTime) / 16; // Normalize to 60fps
+            const delta = (time - lastFrameTime) / 16;
             lastFrameTime = time;
 
             if (isSpinning) {
@@ -229,12 +325,14 @@
                 for (let i = 0; i < REELS; i++) {
                     if (reelVelocities[i] > 0) {
                         reelPositions[i] += reelVelocities[i] * delta;
-                        // Ease out near target
                         const dist = (reelTargets[i] - reelPositions[i] + REEL_STRIP_LENGTH) % REEL_STRIP_LENGTH;
-                        if (dist < 5) reelVelocities[i] *= 0.95; // Decelerate
+                        if (dist < 5) reelVelocities[i] *= 0.92; // Smooth decelerate
                         if (reelVelocities[i] < 0.01) {
                             reelVelocities[i] = 0;
                             reelPositions[i] = reelTargets[i];
+                            // Bounce effect
+                            reelPositions[i] -= 0.2;
+                            setTimeout(() => reelPositions[i] += 0.2, 100);
                         }
                         reelPositions[i] %= REEL_STRIP_LENGTH;
                         stillSpinning = true;
@@ -244,6 +342,9 @@
                     isSpinning = false;
                     spinButton.disabled = false;
                     checkWins();
+                    if (autoSpinning || freeSpins > 0) {
+                        setTimeout(startSpin, 1000);
+                    }
                 }
             }
 
@@ -254,43 +355,86 @@
 
         // Start spin
         function startSpin() {
-            if (balance < BET_AMOUNT) {
+            if (balance < betAmount && freeSpins === 0) {
                 messageElem.textContent = 'Insufficient balance!';
+                autoSpinning = false;
+                autoSpinButton.textContent = 'Auto Spin';
                 return;
             }
-            balance -= BET_AMOUNT;
+            if (freeSpins === 0) {
+                balance -= betAmount;
+            } else {
+                freeSpins--;
+                messageElem.textContent = `Free Spins left: ${freeSpins}`;
+            }
             updateBalance();
             messageElem.textContent = '';
             isSpinning = true;
             spinButton.disabled = true;
-            // spinSound.play(); // Uncomment with real audio
+            winningLines = [];
+            spinSound.play();
 
             for (let i = 0; i < REELS; i++) {
-                reelVelocities[i] = 1.0 + Math.random() * 0.5; // Variable speed
+                reelVelocities[i] = 1.2 + Math.random() * 0.8;
                 reelTargets[i] = Math.floor(Math.random() * REEL_STRIP_LENGTH);
-                setTimeout(() => {}, SPIN_DURATION + i * 300); // Staggered, but stop logic in animate
             }
         }
 
-        // Check multiple paylines
+        // Check wins with wild and scatter
         function checkWins() {
             let totalPayout = 0;
             const grid = getGrid();
+            winningLines = [];
 
-            for (let line of PAYLINES) {
-                const symbols = line.map((row, reel) => grid[row][reel]);
-                const key = symbols.join('');
-                const payout = PAYTABLE[key] || 0;
-                if (payout > 0) totalPayout += payout;
+            // Check paylines
+            for (let l = 0; l < PAYLINES.length; l++) {
+                let symbols = PAYLINES[l].map((row, reel) => grid[row][reel]);
+                // Replace wilds
+                symbols = symbols.map(s => s === '💎' ? symbols[0] : s); // Simple wild substitution, assume first non-wild
+                let key = symbols.join('');
+                let payout = PAYTABLE[key] || 0;
+                if (payout > 0) {
+                    totalPayout += payout;
+                    winningLines.push(l);
+                }
             }
 
+            // Scatter check
+            let scatterCount = 0;
+            for (let row = 0; row < ROWS; row++) {
+                for (let reel = 0; reel < REELS; reel++) {
+                    if (grid[row][reel] === '⭐') scatterCount++;
+                }
+            }
+            if (scatterCount >= 3) {
+                totalPayout += 50 * scatterCount;
+                freeSpins += FREE_SPINS_COUNT;
+                messageElem.textContent += ' + Free Spins!';
+            }
+
+            // Bonus round if 3 bells
+            let bellCount = 0;
+            for (let row = 0; row < ROWS; row++) {
+                for (let reel = 0; reel < REELS; reel++) {
+                    if (grid[row][reel] === '🔔') bellCount++;
+                }
+            }
+            if (bellCount >= 3) {
+                bonusRound = true;
+                totalPayout += Math.random() * 500 + 100; // Random bonus
+                messageElem.textContent += ' + Bonus Win!';
+            }
+
+            // Apply multiplier if in free spins
+            if (freeSpins > 0) totalPayout *= FREE_SPINS_MULTIPLIER;
+
             if (totalPayout > 0) {
-                balance += totalPayout * BET_AMOUNT;
-                messageElem.textContent = `Big Win! ${totalPayout}x bet = ${totalPayout * BET_AMOUNT}`;
-                // winSound.play();
+                balance += totalPayout * betAmount;
+                messageElem.textContent = `Epic Win! ${totalPayout}x bet = ${totalPayout * betAmount}`;
+                winSound.play();
                 createParticles();
             } else {
-                messageElem.textContent = 'No win. Spin again!';
+                messageElem.textContent = 'Try Again!';
             }
             updateBalance();
         }
@@ -306,16 +450,16 @@
             return grid;
         }
 
-        // Particle explosion for wins
+        // Particle explosion with more variety
         function createParticles() {
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 100; i++) {
                 particles.push({
                     x: Math.random() * width,
                     y: height,
-                    size: Math.random() * 5 + 1,
-                    speed: Math.random() * 2 + 1,
+                    size: Math.random() * 8 + 2,
+                    speed: Math.random() * 3 + 2,
                     alpha: 1
                 });
             }
@@ -323,9 +467,29 @@
 
         function updateBalance() {
             balanceElem.textContent = `Balance: ${balance}`;
+            betAmountElem.textContent = `Bet: ${betAmount}`;
+            localStorage.setItem('balance', balance);
         }
 
+        // Event listeners
         spinButton.addEventListener('click', startSpin);
+        autoSpinButton.addEventListener('click', () => {
+            autoSpinning = !autoSpinning;
+            autoSpinButton.textContent = autoSpinning ? 'Stop Auto' : 'Auto Spin';
+            if (autoSpinning) startSpin();
+        });
+        betUp.addEventListener('click', () => {
+            if (betAmount < MAX_BET) betAmount += BET_STEP;
+            updateBalance();
+        });
+        betDown.addEventListener('click', () => {
+            if (betAmount > MIN_BET) betAmount -= BET_STEP;
+            updateBalance();
+        });
+        paytableButton.addEventListener('click', () => paytable.style.display = 'block');
+        closePaytable.addEventListener('click', () => paytable.style.display = 'none');
+
+        updateBalance();
     </script>
 </body>
 </html>
