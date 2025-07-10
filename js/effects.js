@@ -8,22 +8,40 @@ class EffectsSystem {
         this.glowEffects = [];
     }
     
-    // Particle system for win celebrations
+    // Enhanced particle system for win celebrations
     createWinParticles(x, y, type = 'sparkle') {
-        const particleCount = type === 'jackpot' ? 50 : 20;
+        const particleCount = type === 'jackpot' ? 100 : 50; // More particles for better effect
         
         for (let i = 0; i < particleCount; i++) {
             this.particles.push({
                 x: x,
                 y: y,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 0.5) * 8,
+                vx: (Math.random() - 0.5) * 12, // Increased velocity range
+                vy: (Math.random() - 0.5) * 12,
                 life: 1.0,
-                decay: 0.02,
-                size: Math.random() * 4 + 2,
-                color: type === 'jackpot' ? `hsl(${Math.random() * 60 + 40}, 100%, 60%)` : `hsl(${Math.random() * 360}, 70%, 60%)`,
-                type: type
+                decay: 0.015, // Slower decay for longer-lasting effect
+                size: Math.random() * 6 + 3, // Larger particles
+                color: type === 'jackpot' ? 
+                    `hsl(${Math.random() * 60 + 40}, 100%, ${60 + Math.random() * 40}%)` : 
+                    `hsl(${Math.random() * 360}, 80%, ${50 + Math.random() * 40}%)`,
+                type: type,
+                rotation: Math.random() * Math.PI * 2, // Add rotation
+                rotationSpeed: (Math.random() - 0.5) * 0.3 // Rotation speed
             });
+        }
+    }
+    
+    // Create fireworks effect for big wins
+    createFireworksEffect(x, y) {
+        const burstCount = 5;
+        for (let burst = 0; burst < burstCount; burst++) {
+            setTimeout(() => {
+                this.createWinParticles(
+                    x + (Math.random() - 0.5) * 200,
+                    y + (Math.random() - 0.5) * 200,
+                    'jackpot'
+                );
+            }, burst * 200);
         }
     }
     
@@ -60,7 +78,7 @@ class EffectsSystem {
         shake();
     }
     
-    // Glow effect for winning symbols
+    // Enhanced glow effect for winning symbols
     addGlowEffect(x, y, width, height, color = '#ffd700', intensity = 1) {
         this.glowEffects.push({
             x: x,
@@ -70,7 +88,18 @@ class EffectsSystem {
             color: color,
             intensity: intensity,
             pulsePhase: 0,
-            life: 1.0
+            life: 2.0, // Longer lasting glow
+            glowRadius: 0,
+            maxGlowRadius: 30
+        });
+    }
+    
+    // Add cascading glow effect for multiple wins
+    addCascadingGlow(positions, color = '#ffd700') {
+        positions.forEach((pos, index) => {
+            setTimeout(() => {
+                this.addGlowEffect(pos.x, pos.y, pos.width, pos.height, color, 1.5);
+            }, index * 100);
         });
     }
     
@@ -107,7 +136,7 @@ class EffectsSystem {
     
     // Update and render all effects
     update() {
-        // Update particles
+        // Update particles with enhanced physics
         this.particles = this.particles.filter(particle => {
             particle.x += particle.vx;
             particle.y += particle.vy;
@@ -115,49 +144,77 @@ class EffectsSystem {
             particle.vy += 0.1; // Gravity
             particle.life -= particle.decay;
             
+            // Update rotation
+            if (particle.rotation !== undefined) {
+                particle.rotation += particle.rotationSpeed;
+            }
+            
             return particle.life > 0;
         });
         
-        // Update glow effects
+        // Update glow effects with enhanced animation
         this.glowEffects = this.glowEffects.filter(glow => {
-            glow.pulsePhase += 0.1;
-            glow.life -= 0.01;
+            glow.pulsePhase += 0.15; // Faster pulse
+            glow.life -= 0.005; // Slower fade
+            
+            // Animate glow radius
+            if (glow.glowRadius < glow.maxGlowRadius) {
+                glow.glowRadius += 1;
+            }
+            
             return glow.life > 0;
         });
     }
     
     render() {
-        // Render glow effects
+        // Render enhanced glow effects
         this.glowEffects.forEach(glow => {
-            const pulse = 0.5 + 0.5 * Math.sin(glow.pulsePhase);
+            const pulse = 0.6 + 0.4 * Math.sin(glow.pulsePhase);
             const alpha = glow.life * glow.intensity * pulse;
             
             this.ctx.save();
             this.ctx.globalAlpha = alpha;
-            this.ctx.shadowColor = glow.color;
-            this.ctx.shadowBlur = 20;
-            this.ctx.strokeStyle = glow.color;
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(glow.x - 5, glow.y - 5, glow.width + 10, glow.height + 10);
+            
+            // Multiple glow layers for better effect
+            for (let i = 0; i < 3; i++) {
+                this.ctx.shadowColor = glow.color;
+                this.ctx.shadowBlur = 15 + i * 10;
+                this.ctx.strokeStyle = glow.color;
+                this.ctx.lineWidth = 3 - i;
+                this.ctx.strokeRect(
+                    glow.x - 5 - i * 2, 
+                    glow.y - 5 - i * 2, 
+                    glow.width + 10 + i * 4, 
+                    glow.height + 10 + i * 4
+                );
+            }
+            
             this.ctx.restore();
         });
         
-        // Render particles
+        // Render enhanced particles
         this.particles.forEach(particle => {
             this.ctx.save();
             this.ctx.globalAlpha = particle.life;
             this.ctx.fillStyle = particle.color;
             
             if (particle.type === 'sparkle') {
-                // Draw sparkle shape
+                // Enhanced sparkle with rotation
                 this.ctx.save();
                 this.ctx.translate(particle.x, particle.y);
-                this.ctx.rotate(particle.life * Math.PI * 4);
-                this.ctx.fillRect(-particle.size/2, -1, particle.size, 2);
-                this.ctx.fillRect(-1, -particle.size/2, 2, particle.size);
+                this.ctx.rotate(particle.rotation || 0);
+                
+                // Draw multiple sparkle rays
+                for (let i = 0; i < 4; i++) {
+                    this.ctx.rotate(Math.PI / 2);
+                    this.ctx.fillRect(-particle.size/2, -1, particle.size, 2);
+                }
+                
                 this.ctx.restore();
             } else {
-                // Draw circle
+                // Enhanced circle with glow
+                this.ctx.shadowColor = particle.color;
+                this.ctx.shadowBlur = particle.size;
                 this.ctx.beginPath();
                 this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
                 this.ctx.fill();

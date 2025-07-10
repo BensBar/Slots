@@ -408,12 +408,14 @@ class Game {
             this.audio.play('win');
         }
         
-        // Create particle effects
+        // Enhanced particle effects based on win size
         winningLines.forEach(line => {
             if (typeof line.line === 'number') {
+                const positions = [];
                 for (let reel = 0; reel < 3; reel++) {
                     const x = this.startX + reel * this.reelSpacing + this.reelWidth / 2;
                     const y = this.startY + line.line * this.reelHeight + this.reelHeight / 2;
+                    positions.push({ x, y, width: this.reelWidth, height: this.reelHeight });
                     
                     if (line.symbols[0] === 'jackpot') {
                         this.effects.createWinParticles(x, y, 'jackpot');
@@ -421,19 +423,32 @@ class Game {
                         this.effects.createWinParticles(x, y, 'sparkle');
                     }
                 }
+                
+                // Add cascading glow effect for winning lines
+                this.effects.addCascadingGlow(positions, line.symbols[0] === 'jackpot' ? '#ffd700' : '#00ff00');
             }
         });
         
-        // Screen shake for big wins
-        if (amount >= this.bet * 50) {
+        // Special effects for big wins
+        if (amount >= this.bet * 100) {
+            // Massive jackpot - fireworks effect
+            const centerX = this.startX + this.reelSpacing + this.reelWidth / 2;
+            const centerY = this.startY + this.reelHeight * 1.5;
+            this.effects.createFireworksEffect(centerX, centerY);
+            this.effects.createScreenShake(12, 800);
+        } else if (amount >= this.bet * 50) {
+            // Big win - enhanced screen shake
             this.effects.createScreenShake(8, 600);
         } else if (amount >= this.bet * 20) {
+            // Medium win - moderate screen shake
             this.effects.createScreenShake(4, 400);
         }
         
-        // Haptic feedback
+        // Enhanced haptic feedback
         if (navigator.vibrate) {
-            if (amount >= this.bet * 50) {
+            if (amount >= this.bet * 100) {
+                navigator.vibrate([200, 100, 200, 100, 200, 100, 200]);
+            } else if (amount >= this.bet * 50) {
                 navigator.vibrate([100, 50, 100, 50, 100]);
             } else {
                 navigator.vibrate(100);
@@ -592,26 +607,27 @@ class Game {
                 this.ctx.lineWidth = 1;
                 this.ctx.beginPath();
                 const separatorX = x + this.reelWidth + (this.reelSpacing - this.reelWidth) / 2;
-this.ctx.moveTo(separatorX, this.startY);
-this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
-this.ctx.stroke();
-}
-}
-    // Add slot machine glass effect - responsive width
-    const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
-    glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-    glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
-    glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
-    glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
-    this.ctx.fillStyle = glassGradient;
-    const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
-    this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
+                this.ctx.moveTo(separatorX, this.startY);
+                this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
+                this.ctx.stroke();
+            }
+        }
+        
+        // Add slot machine glass effect - responsive width
+        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
+        glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+        glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
+        glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
+        glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+        this.ctx.fillStyle = glassGradient;
+        const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
+        this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
+        
+        // Payline indicators
+        this.renderPaylines();
+    }
     
-    // Payline indicators
-    this.renderPaylines();
-}
-
-renderSymbol(symbol, x, y, alpha = 1) {
+    renderSymbol(symbol, x, y, alpha = 1) {
     const img = this.assetManager.getImage(symbol);
     
     if (img && this.assetManager.isLoaded(symbol)) {
@@ -659,7 +675,7 @@ renderSymbol(symbol, x, y, alpha = 1) {
     }
 }
 
-renderUI() {
+    renderUI() {
     const dims = this.display.getScaledDimensions();
     const isIPhone = /iPhone/i.test(navigator.userAgent);
     
@@ -701,7 +717,7 @@ renderUI() {
     }
 }
 
-renderPaylines() {
+    renderPaylines() {
     if (this.paylines <= 0) return;
     
     const dims = this.display.getScaledDimensions();
@@ -745,3 +761,8 @@ renderPaylines() {
     
     this.ctx.restore();
 }
+}
+
+// Ensure the Game class is properly exposed globally
+window.Game = Game;
+console.log('Game class defined:', typeof Game);

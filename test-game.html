@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Class Test</title>
+</head>
+<body>
+    <h1>Game Class Test</h1>
+    <div id="log"></div>
+    
+    <script>
+        function log(message) {
+            console.log(message);
+            document.getElementById('log').innerHTML += message + '<br>';
+        }
+        
+        log('Starting Game class test...');
+        
+        // Try to load the game.js file and see if it runs
+        fetch('/js/game.js')
+            .then(response => response.text())
+            .then(code => {
+                log('Game.js loaded, length: ' + code.length);
+                try {
+                    // Try to execute the code
+                    eval(code);
+                    log('Game.js executed successfully');
+                    log('Game class type: ' + typeof Game);
+                } catch (e) {
+                    log('Error executing Game.js: ' + e.message);
+                    log('Error stack: ' + e.stack);
+                }
+            })
+            .catch(e => {
+                log('Error loading Game.js: ' + e.message);
+            });
+    </script>
+</body>
+</html>
