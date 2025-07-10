@@ -27,7 +27,7 @@
             overflow: hidden;
             border: 5px solid gold;
             box-shadow: 0 0 50px gold;
-            background: url('data:image/svg+xml,%3Csvg xmlns="http://2000.svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="black"/%3E%3Ccircle cx="50" cy="50" r="40" fill="none" stroke="gold" stroke-width="2" stroke-dasharray="5,5"/%3E%3C/svg%3E');
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="black"/%3E%3Ccircle cx="50" cy="50" r="40" fill="none" stroke="gold" stroke-width="2" stroke-dasharray="5,5"/%3E%3C/svg%3E');
             background-size: cover;
         }
         #slot-canvas {
@@ -139,8 +139,8 @@
         <p>Free Spins: 3+ Star gives 10 free spins with 2x multiplier.</p>
         <p>Bonus Round: Pick from prizes for extra credits.</p>
     </div>
-    <audio id="spin-sound" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Slot-machine-sound-effect.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Slot-machine-sound-effect.mp3" preload="auto"></audio> <!-- Use same for now -->
+    <audio id="spin-sound" preload="none"></audio>
+    <audio id="win-sound" preload="none"></audio>
     <script>
         // Phenomenal Slot Machine Game Logic with 4K Sizzle and PNG Assets
         const canvas = document.getElementById('slot-canvas');
@@ -202,7 +202,18 @@
         const scatterKey = 'star'; // Scatter
         const bonusKey = 'bell'; // Bonus trigger
 
-        // Game State
+        // Safe audio play function
+        function playSound(audioElement) {
+            try {
+                if (audioElement && audioElement.play) {
+                    audioElement.play().catch(err => {
+                        console.log('Audio play failed:', err);
+                    });
+                }
+            } catch (error) {
+                console.log('Audio error:', error);
+            }
+        }
         let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 1000;
         let betAmount = MIN_BET;
         let isSpinning = false;
@@ -219,9 +230,17 @@
         let imagesLoaded = 0;
         const totalImages = SYMBOL_KEYS.length;
 
-        // Wait for images to load
+        // Wait for images to load with error handling
         SYMBOL_KEYS.forEach(key => {
             symbolImages[key].onload = () => {
+                imagesLoaded++;
+                if (imagesLoaded === totalImages) {
+                    resizeCanvas();
+                    requestAnimationFrame(animate);
+                }
+            };
+            symbolImages[key].onerror = () => {
+                console.warn(`Failed to load image: ${key}.png`);
                 imagesLoaded++;
                 if (imagesLoaded === totalImages) {
                     resizeCanvas();
@@ -250,7 +269,29 @@
             return strip;
         }
 
-        // Render with enhanced visuals
+        // Fallback canvas drawing for symbols
+        function drawSymbolFallback(ctx, symbolKey, x, y, size) {
+            const colors = {
+                'cherry': '#FF0000',
+                'lemon': '#FFFF00',
+                'clover': '#00FF00',
+                'bell': '#FFD700',
+                'star': '#FFA500',
+                'seven': '#FF4500',
+                'jackpot': '#8B0000',
+                'diamond': '#87CEEB'
+            };
+            
+            ctx.fillStyle = colors[symbolKey] || '#FFFFFF';
+            ctx.fillRect(x, y, size, size);
+            
+            // Draw symbol text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = `${size/3}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(symbolKey.toUpperCase(), x + size/2, y + size/2);
+        }
         function render() {
             if (imagesLoaded < totalImages) return; // Wait for load
 
@@ -284,7 +325,14 @@
 
                     ctx.shadowColor = 'gold';
                     ctx.shadowBlur = 10;
-                    ctx.drawImage(symbolImages[symbolKey], x, y, symbolSize, symbolSize);
+                    
+                    // Draw image or fallback
+                    if (symbolImages[symbolKey] && symbolImages[symbolKey].complete && symbolImages[symbolKey].naturalWidth > 0) {
+                        ctx.drawImage(symbolImages[symbolKey], x, y, symbolSize, symbolSize);
+                    } else {
+                        drawSymbolFallback(ctx, symbolKey, x, y, symbolSize);
+                    }
+                    
                     ctx.shadowBlur = 0;
                 }
             }
@@ -350,9 +398,6 @@
                         if (reelVelocities[i] < 0.01) {
                             reelVelocities[i] = 0;
                             reelPositions[i] = reelTargets[i];
-                            // Bounce effect
-                            reelPositions[i] -= 0.2;
-                            setTimeout(() => reelPositions[i] += 0.2, 100);
                         }
                         reelPositions[i] %= REEL_STRIP_LENGTH;
                         stillSpinning = true;
@@ -391,7 +436,7 @@
             isSpinning = true;
             spinButton.disabled = true;
             winningLines = [];
-            spinSound.play();
+            playSound(spinSound);
 
             for (let i = 0; i < REELS; i++) {
                 reelVelocities[i] = 1.2 + Math.random() * 0.8;
@@ -451,7 +496,7 @@
             if (totalPayout > 0) {
                 balance += totalPayout * betAmount;
                 messageElem.textContent = `Epic Win! ${totalPayout}x bet = ${totalPayout * betAmount}`;
-                winSound.play();
+                playSound(winSound);
                 createParticles();
             } else {
                 messageElem.textContent = 'Try Again!';
