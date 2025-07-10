@@ -126,23 +126,23 @@
         <span id="close-paytable">X</span>
         <h2>Paytable</h2>
         <ul>
-            <li>🍒🍒🍒: 20x</li>
-            <li>🍋🍋🍋: 30x</li>
-            <li>🍉🍉🍉: 40x</li>
-            <li>🔔🔔🔔: 50x</li>
-            <li>⭐⭐⭐: 100x (Scatter - 3+ triggers free spins)</li>
-            <li>777: 200x</li>
-            <li>BARBARBABAR: 500x</li>
-            <li>💎💎💎: 1000x (Wild - substitutes for all except scatter)</li>
+            <li>Cherry x3: 20x</li>
+            <li>Lemon x3: 30x</li>
+            <li>Clover x3: 40x</li>
+            <li>Bell x3: 50x</li>
+            <li>Star x3: 100x (Scatter - 3+ triggers free spins)</li>
+            <li>Seven x3: 200x</li>
+            <li>Jackpot x3: 500x</li>
+            <li>Diamond x3: 1000x (Wild - substitutes for all except scatter)</li>
             <li>3 Bells: Bonus Round</li>
         </ul>
-        <p>Free Spins: 3+ ⭐ gives 10 free spins with 2x multiplier.</p>
+        <p>Free Spins: 3+ Star gives 10 free spins with 2x multiplier.</p>
         <p>Bonus Round: Pick from prizes for extra credits.</p>
     </div>
     <audio id="spin-sound" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Slot-machine-sound-effect.mp3" preload="auto"></audio>
     <audio id="win-sound" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Slot-machine-sound-effect.mp3" preload="auto"></audio> <!-- Use same for now -->
     <script>
-        // Phenomenal Slot Machine Game Logic with 4K Sizzle
+        // Phenomenal Slot Machine Game Logic with 4K Sizzle and PNG Assets
         const canvas = document.getElementById('slot-canvas');
         const ctx = canvas.getContext('2d');
         const spinButton = document.getElementById('spin-button');
@@ -161,8 +161,8 @@
         // Game Constants
         const REELS = 5;
         const ROWS = 3;
-        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '⭐', '7', 'BAR', '💎']; // 💎 Wild, ⭐ Scatter
-        const REEL_STRIP_LENGTH = SYMBOLS.length * 5; // Even longer for smoothness
+        const SYMBOL_KEYS = ['cherry', 'lemon', 'clover', 'bell', 'star', 'seven', 'jackpot', 'diamond']; // Mapped to PNG files, wild is diamond
+        const REEL_STRIP_LENGTH = SYMBOL_KEYS.length * 5; // Even longer for smoothness
         const SPIN_DURATION = 3000; // Dramatic spin
         const BET_STEP = 10;
         const MIN_BET = 10;
@@ -180,17 +180,27 @@
             [0,1,0,1,0] // Zigzag
         ];
         const PAYTABLE = {
-            '🍒🍒🍒': 20,
-            '🍋🍋🍋': 30,
-            '🍉🍉🍉': 40,
-            '🔔🔔🔔': 50,
-            '⭐⭐⭐': 100,
-            '777': 200,
-            'BARBARBAR': 500,
-            '💎💎💎': 1000
+            'cherrycherrycherry': 20,
+            'lemonlemonlemon': 30,
+            'clovercloverclover': 40,
+            'bellbellbell': 50,
+            'starstarstar': 100,
+            'sevensevenseven': 200,
+            'jackpotjackpotjackpot': 500,
+            'diamonddiamonddiamond': 1000
         };
         const FREE_SPINS_COUNT = 10;
         const FREE_SPINS_MULTIPLIER = 2;
+
+        // Load PNG images
+        const symbolImages = {};
+        SYMBOL_KEYS.forEach(key => {
+            symbolImages[key] = new Image();
+            symbolImages[key].src = `/assets/${key}.png`;
+        });
+        const wildKey = 'diamond'; // Wild
+        const scatterKey = 'star'; // Scatter
+        const bonusKey = 'bell'; // Bonus trigger
 
         // Game State
         let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 1000;
@@ -206,6 +216,19 @@
         let particles = [];
         let winningLines = [];
         let bonusRound = false;
+        let imagesLoaded = 0;
+        const totalImages = SYMBOL_KEYS.length;
+
+        // Wait for images to load
+        SYMBOL_KEYS.forEach(key => {
+            symbolImages[key].onload = () => {
+                imagesLoaded++;
+                if (imagesLoaded === totalImages) {
+                    resizeCanvas();
+                    requestAnimationFrame(animate);
+                }
+            };
+        });
 
         // Scale for 4K
         function resizeCanvas() {
@@ -217,19 +240,20 @@
             render();
         }
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
         // Generate reel strip with more variety
         function generateReelStrip() {
             let strip = [];
-            for (let i = 0; i = 5; i++) {
-                strip = strip.concat(SYMBOLS.sort(() => Math.random() - 0.5));
+            for (let i = 0; i < 5; i++) {
+                strip = strip.concat(SYMBOL_KEYS.sort(() => Math.random() - 0.5));
             }
             return strip;
         }
 
         // Render with enhanced visuals
         function render() {
+            if (imagesLoaded < totalImages) return; // Wait for load
+
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
             const reelWidth = width / REELS;
@@ -249,22 +273,18 @@
                 ctx.fillRect(i * reelWidth, 0, reelWidth, height);
             }
 
-            // Draw symbols with glow and shadow
+            // Draw symbols from PNGs with glow and shadow
             for (let reel = 0; reel < REELS; reel++) {
                 for (let row = -1; row <= ROWS; row++) {
                     const pos = (reelPositions[reel] + row + REEL_STRIP_LENGTH) % REEL_STRIP_LENGTH;
-                    const symbol = reelStrips[reel][Math.floor(pos)];
+                    const symbolKey = reelStrips[reel][Math.floor(pos)];
                     const frac = pos % 1;
                     const x = reel * reelWidth + marginX;
                     const y = row * rowHeight + (frac * rowHeight) + marginY;
 
-                    ctx.font = `${symbolSize}px Arial`;
-                    ctx.fillStyle = 'white';
                     ctx.shadowColor = 'gold';
                     ctx.shadowBlur = 10;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(symbol, x + symbolSize / 2, y + symbolSize / 2);
+                    ctx.drawImage(symbolImages[symbolKey], x, y, symbolSize, symbolSize);
                     ctx.shadowBlur = 0;
                 }
             }
@@ -351,7 +371,6 @@
             render();
             requestAnimationFrame(animate);
         }
-        requestAnimationFrame(animate);
 
         // Start spin
         function startSpin() {
@@ -389,8 +408,9 @@
             // Check paylines
             for (let l = 0; l < PAYLINES.length; l++) {
                 let symbols = PAYLINES[l].map((row, reel) => grid[row][reel]);
-                // Replace wilds
-                symbols = symbols.map(s => s === '💎' ? symbols[0] : s); // Simple wild substitution, assume first non-wild
+                // Wild substitution (simple: replace wild with the first non-wild symbol in the line)
+                const firstNonWild = symbols.find(s => s !== wildKey) || wildKey;
+                symbols = symbols.map(s => s === wildKey ? firstNonWild : s);
                 let key = symbols.join('');
                 let payout = PAYTABLE[key] || 0;
                 if (payout > 0) {
@@ -403,7 +423,7 @@
             let scatterCount = 0;
             for (let row = 0; row < ROWS; row++) {
                 for (let reel = 0; reel < REELS; reel++) {
-                    if (grid[row][reel] === '⭐') scatterCount++;
+                    if (grid[row][reel] === scatterKey) scatterCount++;
                 }
             }
             if (scatterCount >= 3) {
@@ -413,15 +433,15 @@
             }
 
             // Bonus round if 3 bells
-            let bellCount = 0;
+            let bonusCount = 0;
             for (let row = 0; row < ROWS; row++) {
                 for (let reel = 0; reel < REELS; reel++) {
-                    if (grid[row][reel] === '🔔') bellCount++;
+                    if (grid[row][reel] === bonusKey) bonusCount++;
                 }
             }
-            if (bellCount >= 3) {
+            if (bonusCount >= 3) {
                 bonusRound = true;
-                totalPayout += Math.random() * 500 + 100; // Random bonus
+                totalPayout += Math.floor(Math.random() * 500 + 100); // Random bonus
                 messageElem.textContent += ' + Bonus Win!';
             }
 
