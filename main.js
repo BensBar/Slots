@@ -3,6 +3,13 @@ console.log('🎰 Starting Ultimate 4K iPhone Slot Machine...');
 
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, checking for Game class...');
+    console.log('Game class exists:', typeof Game !== 'undefined');
+    console.log('Display4K class exists:', typeof Display4K !== 'undefined');
+    console.log('AssetManager class exists:', typeof AssetManager !== 'undefined');
+    console.log('EffectsSystem class exists:', typeof EffectsSystem !== 'undefined');
+    console.log('AudioSystem class exists:', typeof AudioSystem !== 'undefined');
+    
     try {
         // Create game instance - Fixed class name
         const game = new Game();

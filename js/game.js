@@ -592,26 +592,27 @@ class Game {
                 this.ctx.lineWidth = 1;
                 this.ctx.beginPath();
                 const separatorX = x + this.reelWidth + (this.reelSpacing - this.reelWidth) / 2;
-this.ctx.moveTo(separatorX, this.startY);
-this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
-this.ctx.stroke();
-}
-}
-    // Add slot machine glass effect - responsive width
-    const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
-    glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-    glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
-    glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
-    glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
-    this.ctx.fillStyle = glassGradient;
-    const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
-    this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
+                this.ctx.moveTo(separatorX, this.startY);
+                this.ctx.lineTo(separatorX, this.startY + 3 * this.reelHeight);
+                this.ctx.stroke();
+            }
+        }
+        
+        // Add slot machine glass effect - responsive width
+        const glassGradient = this.ctx.createLinearGradient(this.startX, this.startY, this.startX + totalReelWidth, this.startY + 3 * this.reelHeight);
+        glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+        glassGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
+        glassGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.02)');
+        glassGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+        this.ctx.fillStyle = glassGradient;
+        const glassWidth = Math.min(totalReelWidth + 20, maxFrameWidth - 20); // Responsive glass width
+        this.ctx.fillRect(this.startX - 10, this.startY - 10, glassWidth, 3 * this.reelHeight + 20);
+        
+        // Payline indicators
+        this.renderPaylines();
+    }
     
-    // Payline indicators
-    this.renderPaylines();
-}
-
-renderSymbol(symbol, x, y, alpha = 1) {
+    renderSymbol(symbol, x, y, alpha = 1) {
     const img = this.assetManager.getImage(symbol);
     
     if (img && this.assetManager.isLoaded(symbol)) {
@@ -659,7 +660,7 @@ renderSymbol(symbol, x, y, alpha = 1) {
     }
 }
 
-renderUI() {
+    renderUI() {
     const dims = this.display.getScaledDimensions();
     const isIPhone = /iPhone/i.test(navigator.userAgent);
     
@@ -701,7 +702,7 @@ renderUI() {
     }
 }
 
-renderPaylines() {
+    renderPaylines() {
     if (this.paylines <= 0) return;
     
     const dims = this.display.getScaledDimensions();
@@ -745,3 +746,8 @@ renderPaylines() {
     
     this.ctx.restore();
 }
+}
+
+// Ensure the Game class is properly exposed globally
+window.Game = Game;
+console.log('Game class defined:', typeof Game);
