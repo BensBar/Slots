@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced 4K Slot Machine Game</title>
+    <title>Enhanced 4K 3-Reel Slot Machine Game</title>
     <style>
         body {
             margin: 0;
@@ -93,11 +93,11 @@
         const spinSound = document.getElementById('spin-sound');
         const winSound = document.getElementById('win-sound');
 
-        // Game Constants
-        const REELS = 5; // Upgraded to 5 reels for more excitement
+        // Game Constants - Updated for 3-reel configuration
+        const REELS = 3; // Classic 3-reel slot machine
         const ROWS = 3;
         const SYMBOL_SIZE = 150; // Base size, scaled for 4K
-        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '⭐', '7', 'BAR', '💎']; // Added diamond for variety
+        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '⭐', '7', 'BAR', '💎']; // Classic symbols
         const REEL_STRIP_LENGTH = SYMBOLS.length * 4; // Longer strip for smoother spins
         const SPIN_DURATION = 2500; // Slightly longer for drama
         const BET_AMOUNT = 10;
@@ -109,14 +109,14 @@
             '⭐⭐⭐': 100,
             '777': 200,
             'BARBARBAR': 500,
-            '💎💎💎': 1000 // New high payout
+            '💎💎💎': 1000 // Jackpot symbol
         };
         const PAYLINES = [
-            [1,1,1,1,1], // Middle
-            [0,0,0,0,0], // Top
-            [2,2,2,2,2], // Bottom
-            [0,1,2,1,0], // V
-            [2,1,0,1,2]  // Inverted V
+            [1,1,1], // Middle horizontal
+            [0,0,0], // Top horizontal
+            [2,2,2], // Bottom horizontal
+            [0,1,2], // Diagonal top-left to bottom-right
+            [2,1,0]  // Diagonal top-right to bottom-left
         ];
 
         // Game State

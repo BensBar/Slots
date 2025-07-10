@@ -408,12 +408,14 @@ class Game {
             this.audio.play('win');
         }
         
-        // Create particle effects
+        // Enhanced particle effects based on win size
         winningLines.forEach(line => {
             if (typeof line.line === 'number') {
+                const positions = [];
                 for (let reel = 0; reel < 3; reel++) {
                     const x = this.startX + reel * this.reelSpacing + this.reelWidth / 2;
                     const y = this.startY + line.line * this.reelHeight + this.reelHeight / 2;
+                    positions.push({ x, y, width: this.reelWidth, height: this.reelHeight });
                     
                     if (line.symbols[0] === 'jackpot') {
                         this.effects.createWinParticles(x, y, 'jackpot');
@@ -421,19 +423,32 @@ class Game {
                         this.effects.createWinParticles(x, y, 'sparkle');
                     }
                 }
+                
+                // Add cascading glow effect for winning lines
+                this.effects.addCascadingGlow(positions, line.symbols[0] === 'jackpot' ? '#ffd700' : '#00ff00');
             }
         });
         
-        // Screen shake for big wins
-        if (amount >= this.bet * 50) {
+        // Special effects for big wins
+        if (amount >= this.bet * 100) {
+            // Massive jackpot - fireworks effect
+            const centerX = this.startX + this.reelSpacing + this.reelWidth / 2;
+            const centerY = this.startY + this.reelHeight * 1.5;
+            this.effects.createFireworksEffect(centerX, centerY);
+            this.effects.createScreenShake(12, 800);
+        } else if (amount >= this.bet * 50) {
+            // Big win - enhanced screen shake
             this.effects.createScreenShake(8, 600);
         } else if (amount >= this.bet * 20) {
+            // Medium win - moderate screen shake
             this.effects.createScreenShake(4, 400);
         }
         
-        // Haptic feedback
+        // Enhanced haptic feedback
         if (navigator.vibrate) {
-            if (amount >= this.bet * 50) {
+            if (amount >= this.bet * 100) {
+                navigator.vibrate([200, 100, 200, 100, 200, 100, 200]);
+            } else if (amount >= this.bet * 50) {
                 navigator.vibrate([100, 50, 100, 50, 100]);
             } else {
                 navigator.vibrate(100);
