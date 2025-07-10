@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4K Slot Machine Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1920px; /* Scale for 4K, but responsive */
+            aspect-ratio: 16/9;
+        }
+        #slot-canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #222;
+        }
+        #ui {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        #balance {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        #spin-button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            background-color: #ff4500;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #spin-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        #message {
+            font-size: 1.5em;
+            margin-top: 10px;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="slot-canvas"></canvas>
+        <div id="ui">
+            <div id="balance">Balance: 1000</div>
+            <button id="spin-button">Spin (Bet: 10)</button>
+            <div id="message"></div>
+        </div>
+    </div>
+    <script>
+        // Slot Machine Game Logic
+        const canvas = document.getElementById('slot-canvas');
+        const ctx = canvas.getContext('2d');
+        const spinButton = document.getElementById('spin-button');
+        const balanceElem = document.getElementById('balance');
+        const messageElem = document.getElementById('message');
+
+        // Game Constants
+        const REELS = 3;
+        const ROWS = 3;
+        const SYMBOL_SIZE = 150; // Base size, will scale
+        const SYMBOLS = ['🍒', '🍋', '🍉', '🔔', '⭐', '7', 'BAR']; // Simple emoji symbols for demo
+        const REEL_STRIP_LENGTH = SYMBOLS.length * 3; // Extended strip for smooth spinning
+        const SPIN_DURATION = 2000; // ms per reel, staggered
+        const BET_AMOUNT = 10;
+        const PAYTABLE = {
+            '🍒🍒🍒': 20,
+            '🍋🍋🍋': 30,
+            '🍉🍉🍉': 40,
+            '🔔🔔🔔': 50,
+            '⭐⭐⭐': 100,
+            '777': 200,
+            'BARBARBAR': 500
+        };
+
+        // Game State
+        let balance = 1000;
+        let isSpinning = false;
+        let reelPositions = Array(REELS).fill(0); // Current top symbol index per reel
+        let reelVelocities = Array(REELS).fill(0); // Spin speed
+        let reelStrips = Array(REELS).fill().map(() => generateReelStrip());
+        let lastFrameTime = 0;
+
+        // Scale canvas for 4K/high-res
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            render();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Generate extended reel strip (repeated symbols for looping)
+        function generateReelStrip() {
+            let strip = [];
+            for (let i = 0; i < 3; i++) {
+                strip = strip.concat(SYMBOLS.sort(() => Math.random() - 0.5)); // Shuffle each set
+            }
+            return strip;
+        }
+
+        // Render the reels
+        function render() {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            const reelWidth = width / REELS;
+            const symbolSize = Math.min(reelWidth * 0.8, height / ROWS * 0.8);
+            const margin = (reelWidth - symbolSize) / 2;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw reel backgrounds
+            for (let i = 0; i < REELS; i++) {
+                ctx.fillStyle = '#333';
+                ctx.fillRect(i * reelWidth, 0, reelWidth, height);
+            }
+
+            // Draw symbols
+            for (let reel = 0; reel < REELS; reel++) {
+                for (let row = -1; row <= ROWS; row++) { // Extra for smooth animation
+                    const pos = (reelPositions[reel] + row) % REEL_STRIP_LENGTH;
+                    const symbol = reelStrips[reel][Math.floor(pos)];
+                    const x = reel * reelWidth + margin;
+                    const y = (row + 1) * (height / ROWS) - (reelPositions[reel] % 1) * (height / ROWS) - (height / ROWS);
+
+                    ctx.font = `${symbolSize}px Arial`;
+                    ctx.fillStyle = 'white';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(symbol, x + symbolSize / 2, y + (height / ROWS) / 2);
+                }
+            }
+
+            // Draw payline (middle row)
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.stroke();
+        }
+
+        // Animation loop
+        function animate(time) {
+            if (!lastFrameTime) lastFrameTime = time;
+            const delta = time - lastFrameTime;
+            lastFrameTime = time;
+
+            if (isSpinning) {
+                let stillSpinning = false;
+                for (let i = 0; i < REELS; i++) {
+                    if (reelVelocities[i] > 0) {
+                        reelPositions[i] += reelVelocities[i] * delta / 16; // Approx 60fps
+                        if (reelPositions[i] >= REEL_STRIP_LENGTH) reelPositions[i] %= REEL_STRIP_LENGTH;
+                        stillSpinning = true;
+                    }
+                }
+                if (!stillSpinning) {
+                    isSpinning = false;
+                    spinButton.disabled = false;
+                    checkWin();
+                }
+            }
+
+            render();
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        // Start spin
+        function startSpin() {
+            if (balance < BET_AMOUNT) {
+                messageElem.textContent = 'Insufficient balance!';
+                return;
+            }
+            balance -= BET_AMOUNT;
+            updateBalance();
+            messageElem.textContent = '';
+            isSpinning = true;
+            spinButton.disabled = true;
+
+            // Staggered spin start
+            for (let i = 0; i < REELS; i++) {
+                reelVelocities[i] = 0.5; // Speed (symbols per frame)
+                setTimeout(() => stopReel(i), SPIN_DURATION + i * 500);
+            }
+        }
+
+        // Stop a reel at random position
+        function stopReel(reel) {
+            reelVelocities[reel] = 0;
+            reelPositions[reel] = Math.floor(Math.random() * REEL_STRIP_LENGTH);
+        }
+
+        // Check for win on middle row
+        function checkWin() {
+            const middleRow = [];
+            for (let reel = 0; reel < REELS; reel++) {
+                const pos = Math.floor(reelPositions[reel]) + 1; // Middle symbol
+                middleRow.push(reelStrips[reel][pos % REEL_STRIP_LENGTH]);
+            }
+            const key = middleRow.join('');
+            const payout = PAYTABLE[key] || 0;
+            if (payout > 0) {
+                balance += payout * BET_AMOUNT;
+                messageElem.textContent = `Win! ${payout}x bet = ${payout * BET_AMOUNT}`;
+            } else {
+                messageElem.textContent = 'No win. Try again!';
+            }
+            updateBalance();
+        }
+
+        function updateBalance() {
+            balanceElem.textContent = `Balance: ${balance}`;
+        }
+
+        spinButton.addEventListener('click', startSpin);
+    </script>
+</body>
+</html>
