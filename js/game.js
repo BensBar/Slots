@@ -10,8 +10,8 @@ class Game {
         this.effects = new EffectsSystem(this.ctx, this.canvas);
         this.audio = new AudioSystem();
         
-        // Game state
-        this.symbols = ['bell', 'cherry', 'clover', 'diamond', 'jackpot', 'lemon', 'seven', 'star', 'wild'];
+        // Game state - NFL themed symbols
+        this.symbols = ['football', 'helmet', 'trophy', 'goalpost', 'jersey', 'whistle', 'touchdown', 'fieldgoal', 'mvp'];
         this.reels = [[], [], []];
         this.score = 1000; // Start with some credits
         this.isSpinning = false;
@@ -47,7 +47,7 @@ class Game {
     }
     
     init() {
-        console.log('Initializing Ultimate 4K iPhone Slot Machine...');
+        console.log('Initializing NFL Touchdown Slots...');
         
         // Setup asset loading
         this.assetManager.onProgress((progress, symbol) => {
@@ -73,11 +73,11 @@ class Game {
         const dims = this.display.getScaledDimensions();
         this.display.clear();
         
-        // Background gradient
+        // Background gradient - NFL colors
         const gradient = this.ctx.createLinearGradient(0, 0, 0, dims.height);
-        gradient.addColorStop(0, '#1a1a2e');
-        gradient.addColorStop(0.5, '#16213e');
-        gradient.addColorStop(1, '#0f3460');
+        gradient.addColorStop(0, '#013369');
+        gradient.addColorStop(0.5, '#002244');
+        gradient.addColorStop(1, '#0B162A');
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, dims.width, dims.height);
         
@@ -91,10 +91,10 @@ class Game {
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
         this.ctx.fillRect(barX, barY, barWidth, barHeight);
         
-        // Loading bar fill
+        // Loading bar fill - NFL red
         const fillGradient = this.ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
-        fillGradient.addColorStop(0, '#ff6b6b');
-        fillGradient.addColorStop(1, '#ee5a24');
+        fillGradient.addColorStop(0, '#D50A0A');
+        fillGradient.addColorStop(1, '#B30000');
         this.ctx.fillStyle = fillGradient;
         this.ctx.fillRect(barX, barY, barWidth * progress, barHeight);
         
@@ -102,7 +102,7 @@ class Game {
         this.ctx.fillStyle = '#fff';
         this.ctx.font = 'bold 24px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Loading Ultimate 4K Slot Machine...', dims.width / 2, barY - 30);
+        this.ctx.fillText('🏈 Loading NFL Touchdown Slots... 🏈', dims.width / 2, barY - 30);
         
         this.ctx.font = '16px Arial';
         this.ctx.fillText(`${Math.round(progress * 100)}%`, dims.width / 2, barY + 50);
@@ -368,24 +368,28 @@ class Game {
     }
     
     checkLineWin(symbols) {
-        // Handle wild symbols
-        const processedSymbols = symbols.map(s => s === 'wild' ? symbols.find(sym => sym !== 'wild') || 'wild' : s);
+        // Handle mvp (wild) symbols
+        const processedSymbols = symbols.map(s => s === 'mvp' ? symbols.find(sym => sym !== 'mvp') || 'mvp' : s);
         
         // Check for three of a kind
         if (processedSymbols[0] === processedSymbols[1] && processedSymbols[1] === processedSymbols[2]) {
             switch (processedSymbols[0]) {
-                case 'jackpot': return this.bet * 100;
-                case 'seven': return this.bet * 50;
-                case 'diamond': return this.bet * 25;
-                case 'star': return this.bet * 20;
-                case 'wild': return this.bet * 30;
+                case 'trophy': return this.bet * 100;      // Trophy = Jackpot
+                case 'touchdown': return this.bet * 50;   // Touchdown = Big win
+                case 'helmet': return this.bet * 25;      // Helmet
+                case 'football': return this.bet * 20;    // Football
+                case 'mvp': return this.bet * 30;         // MVP = Wild
+                case 'goalpost': return this.bet * 15;    // Goal post
+                case 'jersey': return this.bet * 12;      // Jersey
+                case 'whistle': return this.bet * 10;     // Whistle
+                case 'fieldgoal': return this.bet * 10;   // Field goal
                 default: return this.bet * 10;
             }
         }
         
-        // Two of a kind with wild
-        if (symbols.includes('wild')) {
-            const nonWildSymbols = symbols.filter(s => s !== 'wild');
+        // Two of a kind with MVP (wild)
+        if (symbols.includes('mvp')) {
+            const nonWildSymbols = symbols.filter(s => s !== 'mvp');
             if (nonWildSymbols.length === 2 && nonWildSymbols[0] === nonWildSymbols[1]) {
                 return this.bet * 5;
             }
@@ -395,14 +399,14 @@ class Game {
     }
     
     celebrateWin(amount, winningLines) {
-        console.log(`Win! Amount: ${amount}`);
+        console.log(`Touchdown! Win Amount: ${amount}`);
         
         // Play appropriate sound
-        const isJackpot = winningLines.some(line => 
-            line.symbols.every(symbol => symbol === 'jackpot')
+        const isTrophy = winningLines.some(line => 
+            line.symbols.every(symbol => symbol === 'trophy')
         );
         
-        if (isJackpot) {
+        if (isTrophy) {
             this.audio.play('jackpot');
         } else {
             this.audio.play('win');
@@ -417,7 +421,7 @@ class Game {
                     const y = this.startY + line.line * this.reelHeight + this.reelHeight / 2;
                     positions.push({ x, y, width: this.reelWidth, height: this.reelHeight });
                     
-                    if (line.symbols[0] === 'jackpot') {
+                    if (line.symbols[0] === 'trophy') {
                         this.effects.createWinParticles(x, y, 'jackpot');
                     } else {
                         this.effects.createWinParticles(x, y, 'sparkle');
@@ -425,7 +429,7 @@ class Game {
                 }
                 
                 // Add cascading glow effect for winning lines
-                this.effects.addCascadingGlow(positions, line.symbols[0] === 'jackpot' ? '#ffd700' : '#00ff00');
+                this.effects.addCascadingGlow(positions, line.symbols[0] === 'trophy' ? '#ffd700' : '#00ff00');
             }
         });
         
@@ -457,8 +461,8 @@ class Game {
     }
     
     checkBonusRound(winningLines) {
-        // Trigger bonus round if three or more scatter symbols (star)
-        const scatterCount = this.reels.flat().filter(symbol => symbol === 'star').length;
+        // Trigger bonus round if three or more football symbols (scatter)
+        const scatterCount = this.reels.flat().filter(symbol => symbol === 'football').length;
         
         if (scatterCount >= 3) {
             this.bonusRounds += 10; // Add 10 free spins
@@ -473,7 +477,7 @@ class Game {
                 }, i * 100);
             }
             
-            console.log('BONUS ROUND! 10 Free Spins with 2x Multiplier!');
+            console.log('🏈 BONUS ROUND! 10 Free Spins with 2x Multiplier! 🏈');
         }
     }
     
@@ -487,12 +491,12 @@ class Game {
         const dims = this.display.getScaledDimensions();
         this.display.clear();
         
-        // Background with animated gradient
+        // Background with animated gradient - NFL colors
         const time = Date.now() * 0.001;
         const gradient = this.ctx.createLinearGradient(0, 0, 0, dims.height);
-        gradient.addColorStop(0, `hsl(${220 + Math.sin(time) * 10}, 30%, 20%)`);
-        gradient.addColorStop(0.5, `hsl(${200 + Math.cos(time * 0.7) * 10}, 35%, 25%)`);
-        gradient.addColorStop(1, `hsl(${240 + Math.sin(time * 0.5) * 10}, 25%, 15%)`);
+        gradient.addColorStop(0, `hsl(${215 + Math.sin(time) * 5}, 70%, 15%)`);
+        gradient.addColorStop(0.5, `hsl(${215 + Math.cos(time * 0.7) * 5}, 60%, 12%)`);
+        gradient.addColorStop(1, `hsl(${215 + Math.sin(time * 0.5) * 5}, 50%, 8%)`);
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, dims.width, dims.height);
         

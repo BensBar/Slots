@@ -1,5 +1,5 @@
-// Ultimate 4K iPhone Slot Machine - Main Entry Point
-console.log('🎰 Starting Ultimate 4K iPhone Slot Machine...');
+// NFL Touchdown Slots - Main Entry Point
+console.log('🏈 Starting NFL Touchdown Slots...');
 
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,16 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('AudioSystem class exists:', typeof AudioSystem !== 'undefined');
     
     try {
-        // Create game instance - Fixed class name
+        // Create game instance
         const game = new Game();
         
         // Store global reference
         window.slotMachine = game;
         
-        console.log('✅ 4K Slot Machine initialized successfully!');
+        console.log('✅ NFL Touchdown Slots initialized successfully!');
         
     } catch (error) {
-        console.error('❌ Failed to initialize 4K Slot Machine:', error);
+        console.error('❌ Failed to initialize NFL Touchdown Slots:', error);
         
         // Fallback error display
         const canvas = document.getElementById('game-canvas');
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.width = 375;
         canvas.height = 200;
         
-        ctx.fillStyle = '#ff0000';
+        ctx.fillStyle = '#D50A0A';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#fff';
         ctx.font = '16px Arial';
