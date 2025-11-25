@@ -15,7 +15,7 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #1a1a2e);
+    background: linear-gradient(135deg, #013369, #002244, #0B162A, #013369);
     background-size: 400% 400%;
     animation: gradientShift 10s ease infinite;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -59,11 +59,11 @@ body {
 #game-canvas {
     border: 3px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
-    background: rgba(26, 26, 46, 0.9);
+    background: rgba(1, 51, 105, 0.9);
     box-shadow: 
         0 0 30px rgba(255, 255, 255, 0.2),
         inset 0 0 20px rgba(0, 0, 0, 0.3),
-        0 0 50px rgba(255, 107, 107, 0.1);
+        0 0 50px rgba(213, 10, 10, 0.1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     position: relative;
@@ -79,7 +79,7 @@ body {
     box-shadow: 
         0 0 35px rgba(255, 255, 255, 0.3),
         inset 0 0 25px rgba(0, 0, 0, 0.3),
-        0 0 60px rgba(255, 107, 107, 0.2);
+        0 0 60px rgba(213, 10, 10, 0.2);
 }
 
 #controls {
@@ -95,7 +95,7 @@ body {
     padding: 18px 36px;
     font-size: 20px;
     font-weight: bold;
-    background: linear-gradient(45deg, #ff6b6b, #ee5a24, #ff6b6b, #ff4757);
+    background: linear-gradient(45deg, #D50A0A, #B30000, #D50A0A, #FF1A1A);
     background-size: 300% 300%;
     color: white;
     border: none;
@@ -103,7 +103,7 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 
-        0 6px 20px rgba(238, 90, 36, 0.4),
+        0 6px 20px rgba(213, 10, 10, 0.4),
         inset 0 1px 3px rgba(255, 255, 255, 0.3),
         0 0 0 2px rgba(255, 255, 255, 0.1);
     text-transform: uppercase;
@@ -151,17 +151,17 @@ body {
 #spin-button:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow: 
-        0 10px 30px rgba(238, 90, 36, 0.6),
+        0 10px 30px rgba(213, 10, 10, 0.6),
         inset 0 1px 3px rgba(255, 255, 255, 0.3),
         0 0 0 2px rgba(255, 255, 255, 0.2),
-        0 0 20px rgba(255, 107, 107, 0.4);
+        0 0 20px rgba(213, 10, 10, 0.4);
     animation-duration: 1s;
 }
 
 #spin-button:active {
     transform: translateY(-1px) scale(1.02);
     box-shadow: 
-        0 4px 15px rgba(238, 90, 36, 0.8),
+        0 4px 15px rgba(213, 10, 10, 0.8),
         inset 0 1px 3px rgba(255, 255, 255, 0.3),
         0 0 0 2px rgba(255, 255, 255, 0.3);
 }
