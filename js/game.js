@@ -382,7 +382,7 @@ class Game {
                 case 'goalpost': return this.bet * 15;    // Goal post
                 case 'jersey': return this.bet * 12;      // Jersey
                 case 'whistle': return this.bet * 10;     // Whistle
-                case 'fieldgoal': return this.bet * 10;   // Field goal
+                case 'fieldgoal': return 0;               // Field goal = Scatter (triggers bonus, no line payout)
                 default: return this.bet * 10;
             }
         }
@@ -461,8 +461,8 @@ class Game {
     }
     
     checkBonusRound(winningLines) {
-        // Trigger bonus round if three or more football symbols (scatter)
-        const scatterCount = this.reels.flat().filter(symbol => symbol === 'football').length;
+        // Trigger bonus round if three or more fieldgoal symbols (scatter)
+        const scatterCount = this.reels.flat().filter(symbol => symbol === 'fieldgoal').length;
         
         if (scatterCount >= 3) {
             this.bonusRounds += 10; // Add 10 free spins
