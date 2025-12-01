@@ -476,3 +476,36 @@ body {
         gap: 10px;
     }
 }
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .stadium-lights,
+    .light {
+        animation: none;
+        opacity: 0.3;
+    }
+    
+    .field-lines {
+        animation: none;
+    }
+    
+    #spin-button:not(:disabled) {
+        animation: none;
+    }
+    
+    .football-icon {
+        animation: none;
+    }
+    
+    .led-display span {
+        animation: none;
+    }
+    
+    @keyframes stadium-glow {
+        0%, 100% { opacity: 0.3; transform: none; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: none; }
+    }
+}

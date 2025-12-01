@@ -666,10 +666,9 @@ class OctocatGame {
             const radius = 12;
             const padding = 4;
             
-            // Background
+            // Background - using cross-browser compatible rounded rect
             this.ctx.fillStyle = '#161b22';
-            this.ctx.beginPath();
-            this.ctx.roundRect(x + padding, y + padding, this.reelWidth - padding * 2, this.reelHeight - padding * 2, radius);
+            this.drawRoundedRect(x + padding, y + padding, this.reelWidth - padding * 2, this.reelHeight - padding * 2, radius);
             this.ctx.fill();
             
             // Border
@@ -694,8 +693,7 @@ class OctocatGame {
             const padding = 4;
             
             this.ctx.fillStyle = '#21262d';
-            this.ctx.beginPath();
-            this.ctx.roundRect(x + padding, y + padding, this.reelWidth - padding * 2, this.reelHeight - padding * 2, radius);
+            this.drawRoundedRect(x + padding, y + padding, this.reelWidth - padding * 2, this.reelHeight - padding * 2, radius);
             this.ctx.fill();
             
             this.ctx.strokeStyle = '#30363d';
@@ -793,6 +791,21 @@ class OctocatGame {
         }
         
         this.ctx.restore();
+    }
+    
+    // Helper method for cross-browser rounded rectangles
+    drawRoundedRect(x, y, width, height, radius) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x + radius, y);
+        this.ctx.lineTo(x + width - radius, y);
+        this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        this.ctx.lineTo(x + width, y + height - radius);
+        this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        this.ctx.lineTo(x + radius, y + height);
+        this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        this.ctx.lineTo(x, y + radius);
+        this.ctx.quadraticCurveTo(x, y, x + radius, y);
+        this.ctx.closePath();
     }
 }
 
