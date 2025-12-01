@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Octocat Slots">
+    <meta name="theme-color" content="#6e5494">
+    <title>Octocat Slots - GitHub Universe</title>
+    <link rel="stylesheet" href="./css/octocats-slots.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Animated Code Rain Background -->
+        <div class="code-rain">
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+            <div class="code-column"></div>
+        </div>
+        
+        <!-- Floating Particles -->
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        
+        <!-- Main Game Area -->
+        <div id="slot-machine">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <span class="btn red"></span>
+                    <span class="btn yellow"></span>
+                    <span class="btn green"></span>
+                </div>
+                <h1>🐙 OCTOCAT SLOTS <span class="blink">_</span></h1>
+                <div class="commit-counter">
+                    <span class="label">commits:</span>
+                    <span id="score-display">1000</span>
+                </div>
+            </div>
+            
+            <canvas id="game-canvas"></canvas>
+            
+            <div id="controls">
+                <div class="control-panel">
+                    <div class="stat-box">
+                        <label>⭐ STARS</label>
+                        <span id="credits">1000</span>
+                    </div>
+                    <button id="spin-button" disabled>
+                        <span class="git-icon">⌘</span>
+                        git push
+                    </button>
+                    <div class="stat-box">
+                        <label>🍴 FORKS</label>
+                        <span id="bet-display">10</span>
+                    </div>
+                </div>
+                <div id="game-info">
+                    <p>🐙 Swipe up to merge your luck! 🐙</p>
+                    <p><code>↑↓ branches | M mute | Space push</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 4K Slot Machine Modules -->
+    <script src="./js/display.js"></script>
+    <script src="./js/assets.js"></script>
+    <script src="./js/effects.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/octocats-game.js"></script>
+</body>
+</html>
