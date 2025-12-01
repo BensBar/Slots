@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NFL Slots">
+    <meta name="theme-color" content="#013369">
+    <title>NFL Touchdown Slots - Stadium Edition</title>
+    <link rel="stylesheet" href="./css/nfl-slots.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Stadium Lights Background Effect -->
+        <div class="stadium-lights">
+            <div class="light light-1"></div>
+            <div class="light light-2"></div>
+            <div class="light light-3"></div>
+            <div class="light light-4"></div>
+        </div>
+        
+        <!-- Field Lines Overlay -->
+        <div class="field-lines"></div>
+        
+        <!-- Main Game Canvas -->
+        <div id="slot-machine">
+            <div class="scoreboard">
+                <h1>🏈 NFL TOUCHDOWN SLOTS 🏈</h1>
+                <div class="led-display">
+                    <span id="score-display">1000</span>
+                </div>
+            </div>
+            
+            <canvas id="game-canvas"></canvas>
+            
+            <div id="controls">
+                <div class="control-panel">
+                    <div class="stat-box">
+                        <label>CREDITS</label>
+                        <span id="credits">1000</span>
+                    </div>
+                    <button id="spin-button" disabled>
+                        <span class="football-icon">🏈</span>
+                        HIKE!
+                    </button>
+                    <div class="stat-box">
+                        <label>BET</label>
+                        <span id="bet-display">10</span>
+                    </div>
+                </div>
+                <div id="game-info">
+                    <p>🏈 Swipe up to score a touchdown! 🏈</p>
+                    <p><small>↑↓ Change paylines | M Mute | Space Spin</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 4K Slot Machine Modules -->
+    <script src="./js/display.js"></script>
+    <script src="./js/assets.js"></script>
+    <script src="./js/effects.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/nfl-game.js"></script>
+</body>
+</html>

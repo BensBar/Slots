@@ -1,0 +1,478 @@
+/* NFL Touchdown Slots - Stadium Edition CSS */
+/* 4K Resolution Support with Mobile Responsiveness */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+    background: #0B162A;
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: linear-gradient(180deg, 
+        #013369 0%, 
+        #002244 30%, 
+        #0B162A 60%,
+        #041E42 100%);
+    position: relative;
+    overflow: hidden;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Stadium Lights Effect */
+.stadium-lights {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.light {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+    animation: stadium-glow 4s ease-in-out infinite;
+}
+
+.light-1 {
+    top: -100px;
+    left: 10%;
+    background: radial-gradient(circle, #FFD700, transparent);
+    animation-delay: 0s;
+}
+
+.light-2 {
+    top: -100px;
+    right: 10%;
+    background: radial-gradient(circle, #FFD700, transparent);
+    animation-delay: 1s;
+}
+
+.light-3 {
+    top: -100px;
+    left: 40%;
+    background: radial-gradient(circle, #FFF, transparent);
+    animation-delay: 0.5s;
+}
+
+.light-4 {
+    top: -100px;
+    right: 40%;
+    background: radial-gradient(circle, #FFF, transparent);
+    animation-delay: 1.5s;
+}
+
+@keyframes stadium-glow {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+/* Football Field Lines */
+.field-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent calc(10% - 1px),
+            rgba(255, 255, 255, 0.05) calc(10% - 1px),
+            rgba(255, 255, 255, 0.05) 10%
+        ),
+        linear-gradient(180deg, 
+            rgba(34, 139, 34, 0.1) 0%,
+            rgba(0, 100, 0, 0.15) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Slot Machine Container */
+#slot-machine {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Scoreboard Header */
+.scoreboard {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 4px solid #D50A0A;
+    border-radius: 15px;
+    padding: 15px 40px;
+    text-align: center;
+    box-shadow: 
+        0 0 30px rgba(213, 10, 10, 0.5),
+        inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.scoreboard h1 {
+    font-size: clamp(18px, 5vw, 36px);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.led-display {
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 5px;
+    padding: 8px 20px;
+    margin-top: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+.led-display span {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(24px, 6vw, 48px);
+    font-weight: bold;
+    color: #FF3333;
+    text-shadow: 
+        0 0 5px #FF3333,
+        0 0 10px #FF3333,
+        0 0 20px #FF0000;
+    animation: led-flicker 0.1s infinite;
+}
+
+@keyframes led-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.98; }
+}
+
+/* Game Canvas */
+#game-canvas {
+    border: 6px solid;
+    border-image: linear-gradient(180deg, #D50A0A 0%, #8B0000 50%, #D50A0A 100%) 1;
+    border-radius: 20px;
+    background: linear-gradient(180deg, 
+        rgba(11, 22, 42, 0.95) 0%, 
+        rgba(1, 51, 105, 0.9) 50%,
+        rgba(11, 22, 42, 0.95) 100%);
+    box-shadow: 
+        0 0 40px rgba(213, 10, 10, 0.4),
+        0 0 80px rgba(1, 51, 105, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+    max-width: 95vw;
+    max-height: 60vh;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+#game-canvas:hover {
+    box-shadow: 
+        0 0 50px rgba(213, 10, 10, 0.6),
+        0 0 100px rgba(1, 51, 105, 0.4),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Control Panel */
+#controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.control-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 3px solid #444;
+    border-radius: 15px;
+    padding: 20px 30px;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-box label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.stat-box span {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(20px, 4vw, 32px);
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Spin Button - Football Style */
+#spin-button {
+    position: relative;
+    padding: 20px 50px;
+    font-size: clamp(18px, 4vw, 28px);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #fff;
+    background: linear-gradient(180deg, 
+        #D50A0A 0%, 
+        #8B0000 50%, 
+        #D50A0A 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 
+        0 8px 25px rgba(213, 10, 10, 0.5),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+#spin-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+    transition: left 0.5s ease;
+}
+
+#spin-button:hover::before {
+    left: 100%;
+}
+
+#spin-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 12px 35px rgba(213, 10, 10, 0.7),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#spin-button:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+#spin-button:disabled {
+    background: linear-gradient(180deg, #444 0%, #222 50%, #444 100%);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+#spin-button:not(:disabled) {
+    animation: button-pulse 2s infinite;
+}
+
+@keyframes button-pulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(213, 10, 10, 0.5); }
+    50% { box-shadow: 0 8px 35px rgba(213, 10, 10, 0.8); }
+}
+
+.football-icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+    display: inline-block;
+    animation: football-spin 1s ease-in-out infinite;
+    animation-play-state: paused;
+}
+
+#spin-button:not(:disabled) .football-icon {
+    animation-play-state: running;
+}
+
+@keyframes football-spin {
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
+}
+
+/* Game Info */
+#game-info {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#game-info p {
+    margin: 5px 0;
+    font-size: clamp(12px, 2.5vw, 16px);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .scoreboard {
+        padding: 10px 20px;
+    }
+    
+    .control-panel {
+        gap: 15px;
+        padding: 15px 20px;
+    }
+    
+    #spin-button {
+        padding: 15px 35px;
+    }
+    
+    .light {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    #game-container {
+        padding: 10px;
+    }
+    
+    .scoreboard {
+        padding: 8px 15px;
+        border-width: 2px;
+    }
+    
+    #game-canvas {
+        max-height: 55vh;
+        border-width: 4px;
+        border-radius: 15px;
+    }
+    
+    .control-panel {
+        gap: 10px;
+        padding: 10px 15px;
+        flex-wrap: wrap;
+    }
+    
+    #spin-button {
+        padding: 12px 30px;
+        border-radius: 30px;
+    }
+    
+    .stat-box label {
+        font-size: 10px;
+    }
+}
+
+/* iPhone Specific */
+@supports (-webkit-touch-callout: none) {
+    #game-container {
+        min-height: -webkit-fill-available;
+    }
+    
+    #spin-button {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+/* High DPI Displays (4K Support) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    #game-canvas {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* 4K Specific Adjustments */
+@media (min-width: 2560px) {
+    .scoreboard h1 {
+        font-size: 48px;
+    }
+    
+    .led-display span {
+        font-size: 64px;
+    }
+    
+    #spin-button {
+        padding: 30px 70px;
+        font-size: 36px;
+    }
+    
+    .stat-box span {
+        font-size: 42px;
+    }
+    
+    .light {
+        width: 500px;
+        height: 500px;
+    }
+}
+
+/* Landscape Mode */
+@media (orientation: landscape) and (max-height: 600px) {
+    #game-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    #slot-machine {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    #game-canvas {
+        max-height: 80vh;
+        max-width: 60vw;
+    }
+    
+    #controls {
+        flex-direction: column;
+        max-width: 200px;
+    }
+    
+    .control-panel {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

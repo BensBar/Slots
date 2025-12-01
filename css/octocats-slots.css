@@ -1,0 +1,547 @@
+/* Octocat Slots - GitHub Universe CSS */
+/* 4K Resolution Support with Mobile Responsiveness */
+/* Completely different feel from NFL - Tech/Developer Theme */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: 
+        radial-gradient(ellipse at top, #161b22 0%, transparent 50%),
+        radial-gradient(ellipse at bottom, #21262d 0%, transparent 50%),
+        linear-gradient(180deg, 
+            #0d1117 0%, 
+            #161b22 30%, 
+            #0d1117 70%,
+            #161b22 100%);
+    position: relative;
+    overflow: hidden;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Matrix-style Code Rain */
+.code-rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    display: flex;
+    justify-content: space-around;
+    overflow: hidden;
+}
+
+.code-column {
+    width: 30px;
+    height: 100%;
+    background: linear-gradient(180deg, 
+        transparent 0%,
+        rgba(88, 166, 255, 0.1) 20%,
+        rgba(88, 166, 255, 0.05) 40%,
+        transparent 60%,
+        rgba(163, 113, 247, 0.1) 80%,
+        transparent 100%);
+    animation: code-fall 8s linear infinite;
+    opacity: 0.5;
+}
+
+.code-column:nth-child(odd) {
+    animation-duration: 10s;
+    animation-delay: -2s;
+}
+
+.code-column:nth-child(even) {
+    animation-duration: 12s;
+    animation-delay: -4s;
+}
+
+.code-column::before {
+    content: '{ } [ ] < > / \\ = + - * $ # @ ! ? & | ~ ^ ` const let var function return if else for while class import export async await';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 30px;
+    color: rgba(88, 166, 255, 0.4);
+    font-size: 10px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    animation: code-scroll 15s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes code-fall {
+    0% { transform: translateY(-100%); opacity: 0; }
+    10% { opacity: 0.5; }
+    90% { opacity: 0.5; }
+    100% { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes code-scroll {
+    from { top: -100%; }
+    to { top: 200%; }
+}
+
+/* Floating Particles */
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.particle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle, #a371f7, transparent);
+    border-radius: 50%;
+    animation: float 20s infinite;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 25s; }
+.particle:nth-child(2) { left: 30%; animation-delay: -5s; animation-duration: 20s; }
+.particle:nth-child(3) { left: 50%; animation-delay: -10s; animation-duration: 22s; }
+.particle:nth-child(4) { left: 70%; animation-delay: -15s; animation-duration: 18s; }
+.particle:nth-child(5) { left: 90%; animation-delay: -20s; animation-duration: 24s; }
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(100vh) scale(0.5); 
+        opacity: 0;
+    }
+    10% { opacity: 0.8; }
+    50% { 
+        transform: translateY(50vh) scale(1.2); 
+        opacity: 0.6;
+    }
+    90% { opacity: 0.8; }
+    100% { 
+        transform: translateY(-10vh) scale(0.8); 
+        opacity: 0;
+    }
+}
+
+/* Slot Machine Container */
+#slot-machine {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+/* Terminal-style Header */
+.terminal-header {
+    width: 100%;
+    max-width: 500px;
+    background: linear-gradient(180deg, #2d333b 0%, #22272e 100%);
+    border: 1px solid #444c56;
+    border-radius: 12px 12px 0 0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.terminal-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-buttons .btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-buttons .red { background: #f85149; }
+.terminal-buttons .yellow { background: #d29922; }
+.terminal-buttons .green { background: #3fb950; }
+
+.terminal-header h1 {
+    font-size: clamp(14px, 3vw, 20px);
+    font-weight: 600;
+    color: #58a6ff;
+    letter-spacing: 1px;
+}
+
+.terminal-header h1 .blink {
+    animation: cursor-blink 1s step-end infinite;
+    color: #3fb950;
+}
+
+@keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.commit-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #161b22;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+}
+
+.commit-counter .label {
+    font-size: 11px;
+    color: #8b949e;
+}
+
+.commit-counter span:last-child {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3fb950;
+}
+
+/* Game Canvas */
+#game-canvas {
+    border: 2px solid #30363d;
+    border-radius: 0 0 12px 12px;
+    background: linear-gradient(180deg, 
+        rgba(22, 27, 34, 0.98) 0%, 
+        rgba(13, 17, 23, 0.95) 50%,
+        rgba(22, 27, 34, 0.98) 100%);
+    box-shadow: 
+        0 0 40px rgba(88, 166, 255, 0.15),
+        0 0 80px rgba(163, 113, 247, 0.1),
+        inset 0 0 30px rgba(0, 0, 0, 0.3);
+    max-width: 95vw;
+    max-height: 60vh;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+#game-canvas:hover {
+    box-shadow: 
+        0 0 50px rgba(88, 166, 255, 0.25),
+        0 0 100px rgba(163, 113, 247, 0.15),
+        inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Control Panel */
+#controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.control-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    background: linear-gradient(180deg, #2d333b 0%, #22272e 100%);
+    border: 1px solid #444c56;
+    border-radius: 12px;
+    padding: 18px 25px;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-box label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-box span {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: clamp(18px, 3.5vw, 28px);
+    font-weight: bold;
+    color: #58a6ff;
+    text-shadow: 0 0 10px rgba(88, 166, 255, 0.4);
+}
+
+/* Spin Button - Git Push Style */
+#spin-button {
+    position: relative;
+    padding: 16px 40px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: clamp(14px, 3vw, 20px);
+    font-weight: 600;
+    text-transform: lowercase;
+    color: #fff;
+    background: linear-gradient(180deg, 
+        #238636 0%, 
+        #1a7f37 50%, 
+        #238636 100%);
+    border: 1px solid #2ea043;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 
+        0 4px 15px rgba(46, 160, 67, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+#spin-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent);
+    transition: left 0.4s ease;
+}
+
+#spin-button:hover::before {
+    left: 100%;
+}
+
+#spin-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(46, 160, 67, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+#spin-button:active {
+    transform: translateY(0);
+}
+
+#spin-button:disabled {
+    background: linear-gradient(180deg, #30363d 0%, #21262d 50%, #30363d 100%);
+    border-color: #444c56;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    color: #8b949e;
+}
+
+#spin-button:not(:disabled) {
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0%, 100% { box-shadow: 0 4px 15px rgba(46, 160, 67, 0.4); }
+    50% { box-shadow: 0 4px 25px rgba(46, 160, 67, 0.7); }
+}
+
+.git-icon {
+    margin-right: 8px;
+    font-size: 1em;
+}
+
+/* Game Info */
+#game-info {
+    text-align: center;
+    color: #8b949e;
+}
+
+#game-info p {
+    margin: 4px 0;
+    font-size: clamp(11px, 2vw, 14px);
+}
+
+#game-info code {
+    background: #161b22;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #58a6ff;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .terminal-header {
+        padding: 10px 15px;
+    }
+    
+    .control-panel {
+        gap: 15px;
+        padding: 15px 18px;
+    }
+    
+    #spin-button {
+        padding: 14px 30px;
+    }
+    
+    .code-column {
+        width: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    #game-container {
+        padding: 10px;
+    }
+    
+    .terminal-header {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .terminal-header h1 {
+        order: -1;
+        width: 100%;
+        text-align: center;
+    }
+    
+    #game-canvas {
+        max-height: 55vh;
+        border-radius: 8px;
+    }
+    
+    .control-panel {
+        gap: 10px;
+        padding: 12px 15px;
+        flex-wrap: wrap;
+    }
+    
+    #spin-button {
+        padding: 12px 25px;
+    }
+    
+    .stat-box label {
+        font-size: 9px;
+    }
+    
+    .code-rain {
+        display: none; /* Hide code rain on small screens for performance */
+    }
+}
+
+/* iPhone Specific */
+@supports (-webkit-touch-callout: none) {
+    #game-container {
+        min-height: -webkit-fill-available;
+    }
+    
+    #spin-button {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+/* High DPI Displays (4K Support) */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    #game-canvas {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* 4K Specific Adjustments */
+@media (min-width: 2560px) {
+    .terminal-header h1 {
+        font-size: 28px;
+    }
+    
+    .commit-counter span:last-child {
+        font-size: 24px;
+    }
+    
+    #spin-button {
+        padding: 24px 60px;
+        font-size: 24px;
+    }
+    
+    .stat-box span {
+        font-size: 36px;
+    }
+    
+    .particle {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Landscape Mode */
+@media (orientation: landscape) and (max-height: 600px) {
+    #game-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    #slot-machine {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    #game-canvas {
+        max-height: 80vh;
+        max-width: 60vw;
+    }
+    
+    #controls {
+        flex-direction: column;
+        max-width: 180px;
+    }
+    
+    .control-panel {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .terminal-header {
+        display: none;
+    }
+}
+
+/* GitHub Theme Colors Reference */
+/* Primary: #58a6ff (blue) */
+/* Secondary: #a371f7 (purple) */
+/* Success: #3fb950 (green) */
+/* Warning: #d29922 (yellow) */
+/* Danger: #f85149 (red) */
+/* Background: #0d1117 (dark) */
+/* Surface: #161b22, #21262d, #2d333b */
+/* Border: #30363d, #444c56 */
+/* Text: #c9d1d9, #8b949e */
